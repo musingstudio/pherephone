@@ -2,9 +2,10 @@ package main
 
 import (
 	"context"
-	"github.com/go-fed/activity/streams/vocab"
-	"github.com/go-fed/activity/streams"
 	"net/url"
+
+	"github.com/go-fed/activity/streams"
+	"github.com/go-fed/activity/streams/vocab"
 
 	"fmt"
 )
@@ -76,6 +77,8 @@ func (d *database) Delete(c context.Context, id *url.URL) (err error) {
 }
 
 func (d *database) GetOutbox(c context.Context, outboxIRI *url.URL) (outbox vocab.ActivityStreamsOrderedCollectionPage, err error) {
+	fmt.Println("getOutboxDb")
+	outbox = streams.NewActivityStreamsOrderedCollectionPage()
 	return
 }
 

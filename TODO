@@ -1,0 +1,11 @@
+[ ] Load outbox of users and parse latest posts
+[ ] Write these posts to local file 
+    (normally we would need to sort by time but this is a 
+    temporary solution until we really follow the actors 
+    and get notifications in timely manner)
+[ ] On GetOutbox read the file and present a list of the
+    last posts as Announcements (read up how boost json looks like)
+[ ] Federate the post to our followers (hardcoded for now)
+[ ] Handle being followed
+[ ] Follow users
+[ ] Replace text files with database

@@ -30,12 +30,20 @@ func (a *commonBehavior) AuthenticateGetInbox(c context.Context, w http.Response
 
 func (a *commonBehavior) AuthenticateGetOutbox(c context.Context, w http.ResponseWriter, r *http.Request) (authenticated bool, err error) {
 	// TODO
-	return
+	return true, nil
 }
 
 func (a *commonBehavior) GetOutbox(c context.Context, r *http.Request) (ocp vocab.ActivityStreamsOrderedCollectionPage, err error) {
 	//TODO
 	fmt.Println("getOutbox")
+	// var iri *url.URL
+	iri, err := url.Parse("http://floorb.qwazix.com/actor/outbox")
+	if err != nil{
+		fmt.Println("something went wrong with the parsing of the outbox url")
+		fmt.Println(err)
+		return
+	}
+	ocp, err = a.db.GetOutbox(c, iri)
 
 	return
 }

@@ -29,6 +29,22 @@ type RemoteActor struct{
 // all the info required for an actor we want to 
 // interact with (not essentially sitting in our instance)
 func NewRemoteActor(iri string) RemoteActor {
+	
+	info := get(iri)
+
+	outboxIri := info["outbox"].(string)
+
+	return RemoteActor{
+		iri: iri,
+		outboxIri: outboxIri,
+	}
+}
+
+func (ra RemoteActor) getLatestPosts(number int) map[string]interface{} {
+	return get(ra.outboxIri)
+}
+
+func get(iri string) map[string]interface{} {
 	clock, err := newClock("Europe/Athens")
 	if err != nil {
 		fmt.Println("something is wrong with the clock")
@@ -71,10 +87,5 @@ func NewRemoteActor(iri string) RemoteActor {
 	}
 	info := e.(map[string]interface{})
 
-	outboxIri := info["outbox"].(string)
-
-	return RemoteActor{
-		iri: iri,
-		outboxIri: outboxIri,
-	}
+	return info
 }

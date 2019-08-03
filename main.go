@@ -1,12 +1,14 @@
 package main
 
 import (
+	"github.com/go-fed/activity/streams"
 	"fmt"
 	// "github.com/go-fed/activity/streams"
 	"github.com/go-fed/activity/pub"
 	// "errors"
 	"log"
 	"net/http"
+	"net/url"
 
 	"encoding/json"
 	"io/ioutil"
@@ -43,6 +45,7 @@ func main() {
 			// Write to w
 			return
 		} else if handled {
+			fmt.Println("gethandled")
 			return
 		}
 		// else:
@@ -61,8 +64,6 @@ func main() {
 			// Write to w
 			return
 		} else if handled {
-			// actor.baseActor.delegate.GetInbox(c,r)
-			fmt.Println("gethandled")
 			return
 		}
 
@@ -93,7 +94,37 @@ func main() {
 	for _, user := range actors {
 		fmt.Println(user)
 		ra := NewRemoteActor(user)
-		fmt.Println(ra.outboxIri)
+		// fmt.Println(ra.outboxIri)
+
+		c := context.Background()
+
+		follow := streams.NewActivityStreamsFollow()
+		object := streams.NewActivityStreamsObjectProperty()
+		iri, err := url.Parse(ra.outboxIri)
+		if err != nil{
+			fmt.Println("something is wrong when parsing the remote" +
+						"actors iri into a url")
+			fmt.Println(err)
+			return
+		}
+		object.AppendIRI(iri)
+		follow.SetActivityStreamsObject(object)
+		
+		iri, err = url.Parse("floorb.qwazix.com/actor/outbox")
+
+		if err != nil{
+			fmt.Println("something is wrong when parsing the local" +
+						"actors iri into a url")
+			fmt.Println(err)
+			return
+		}		
+
+		fmt.Println(c)
+		fmt.Println(iri)
+		fmt.Println(follow)
+
+		actor.Send(c, iri, follow)
+		// PrettyPrint(ra.getLatestPosts(10))
 	}
 
 	http.HandleFunc("/hi", func(w http.ResponseWriter, r *http.Request) {
