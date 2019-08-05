@@ -1,8 +1,10 @@
 package main
 
 import (
-	"github.com/go-fed/activity/streams"
 	"fmt"
+
+	"github.com/go-fed/activity/streams"
+
 	// "github.com/go-fed/activity/streams"
 	"github.com/go-fed/activity/pub"
 	// "errors"
@@ -19,6 +21,8 @@ import (
 )
 
 func main() {
+
+	fmt.Println("=========================================================================")
 
 	var clock *clock
 	var err error
@@ -93,35 +97,39 @@ func main() {
 	fmt.Println("Users to relay:")
 	for _, user := range actors {
 		fmt.Println(user)
-		ra := NewRemoteActor(user)
+		// ra := NewRemoteActor(user)
 		// fmt.Println(ra.outboxIri)
 
 		c := context.Background()
 
 		follow := streams.NewActivityStreamsFollow()
 		object := streams.NewActivityStreamsObjectProperty()
-		iri, err := url.Parse(ra.outboxIri)
-		if err != nil{
+		to := streams.NewActivityStreamsToProperty()
+		iri, err := url.Parse(user)
+		// iri, err := url.Parse("https://print3d.social/users/qwazix/outbox")
+		if err != nil {
 			fmt.Println("something is wrong when parsing the remote" +
-						"actors iri into a url")
+				"actors iri into a url")
 			fmt.Println(err)
 			return
 		}
+		to.AppendIRI(iri)
 		object.AppendIRI(iri)
 		follow.SetActivityStreamsObject(object)
-		
-		iri, err = url.Parse("floorb.qwazix.com/actor/outbox")
+		follow.SetActivityStreamsTo(to)
 
-		if err != nil{
+		iri, err = url.Parse("http://floorb.qwazix.com/actor/outbox")
+
+		if err != nil {
 			fmt.Println("something is wrong when parsing the local" +
-						"actors iri into a url")
+				"actors iri into a url")
 			fmt.Println(err)
 			return
-		}		
+		}
 
-		fmt.Println(c)
-		fmt.Println(iri)
-		fmt.Println(follow)
+		// fmt.Println(c)
+		// fmt.Println(iri)
+		// fmt.Println(follow)
 
 		actor.Send(c, iri, follow)
 		// PrettyPrint(ra.getLatestPosts(10))

@@ -8,6 +8,7 @@ import (
 	"github.com/go-fed/activity/streams/vocab"
 
 	"fmt"
+	"encoding/json"
 )
 
 type database struct {
@@ -61,6 +62,29 @@ func (d *database) Exists(c context.Context, id *url.URL) (exists bool, err erro
 }
 
 func (d *database) Get(c context.Context, id *url.URL) (value vocab.Type, err error) {
+	b := []byte(`{"@context": "https://www.w3.org/ns/activitystreams",
+					"type": "Person",
+					"id": "https://floorb.qwazix.com/actor/",
+					"name": "Alyssa P. Hacker",
+					"preferredUsername": "alyssa",
+					"summary": "Lisp enthusiast hailing from MIT",
+					"inbox": "https://floorb.qwazix.com/actor/inbox/",
+					"outbox": "https://floorb.qwazix.com/actor/outbox/",
+					"followers": "https://floorb.qwazix.com/actor/followers/",
+					"following": "https://floorb.qwazix.com/actor/following/",
+					"liked": "https://floorb.qwazix.com/actor/liked/"}`)
+	  var jsonMap map[string]interface{}
+	  if err = json.Unmarshal(b, &jsonMap); err != nil {
+		panic(err)
+	  }
+
+	  value, err = streams.ToType(c, jsonMap)
+
+	  if err != nil{
+		  fmt.Println("something is wrong with the conversion of JSON to vocab.Type")
+		  return
+	  }
+	
 	return
 }
 
@@ -77,7 +101,6 @@ func (d *database) Delete(c context.Context, id *url.URL) (err error) {
 }
 
 func (d *database) GetOutbox(c context.Context, outboxIRI *url.URL) (outbox vocab.ActivityStreamsOrderedCollectionPage, err error) {
-	fmt.Println("getOutboxDb")
 	outbox = streams.NewActivityStreamsOrderedCollectionPage()
 	return
 }

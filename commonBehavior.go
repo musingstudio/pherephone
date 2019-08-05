@@ -7,6 +7,11 @@ import (
 
 	"github.com/go-fed/activity/pub"
 	"github.com/go-fed/activity/streams/vocab"
+	"github.com/go-fed/httpsig"
+
+	"crypto/rand"
+	"crypto/rsa"
+
 
 	"fmt"
 )
@@ -35,7 +40,6 @@ func (a *commonBehavior) AuthenticateGetOutbox(c context.Context, w http.Respons
 
 func (a *commonBehavior) GetOutbox(c context.Context, r *http.Request) (ocp vocab.ActivityStreamsOrderedCollectionPage, err error) {
 	//TODO
-	fmt.Println("getOutbox")
 	// var iri *url.URL
 	iri, err := url.Parse("http://floorb.qwazix.com/actor/outbox")
 	if err != nil{
@@ -49,6 +53,29 @@ func (a *commonBehavior) GetOutbox(c context.Context, r *http.Request) (ocp voca
 }
 
 func (a *commonBehavior) NewTransport(c context.Context, actorBoxIRI *url.URL, gofedAgent string) (t pub.Transport, err error) {
-	// TODO
+	clock, err := newClock("Europe/Athens")
+	if err != nil {
+		fmt.Println("something is wrong with the clock")
+		fmt.Println(err)
+	}
+
+	client := &http.Client{}
+
+	getSigner, _, err := httpsig.NewSigner( []httpsig.Algorithm{httpsig.RSA_SHA256}, []string{"(request-target)", "date", "host", "digest"}, httpsig.Signature )
+	postSigner, _, err := httpsig.NewSigner( []httpsig.Algorithm{httpsig.RSA_SHA256}, []string{"(request-target)", "date", "host", "digest"}, httpsig.Signature )
+	if err != nil{
+		fmt.Println("something is wrong with the httpsigner function call")
+		fmt.Println(err)
+	}
+	pubKeyId := ""
+	rng := rand.Reader
+	privKey, err := rsa.GenerateKey(rng, 2048)
+	if err != nil{
+		fmt.Println("something is wrong with the httpsigner function call")
+		fmt.Println(err)
+	}
+
+	t = pub.NewHttpSigTransport(client, "pherephoneOfficial", clock, getSigner, postSigner, pubKeyId, privKey)
+
 	return
 }
