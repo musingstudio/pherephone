@@ -3,14 +3,12 @@ package main
 import (
 	"fmt"
 
-	"github.com/go-fed/activity/streams"
-
 	// "github.com/go-fed/activity/streams"
 	"github.com/go-fed/activity/pub"
 	// "errors"
 	"log"
 	"net/http"
-	"net/url"
+	// "net/url"
 
 	"encoding/json"
 	"io/ioutil"
@@ -89,7 +87,7 @@ func main() {
 										"followers": "http://floorb.qwazix.com/actor/followers/",
 										"following": "http://floorb.qwazix.com/actor/following/",
 										"liked": "http://floorb.qwazix.com/actor/liked/"}`)
-		fmt.Println("aaa")
+		fmt.Println("Remote server just fetched our /actor endpoint")
 	}
 
 	// Add the handlers to a HTTP server
@@ -112,49 +110,16 @@ func main() {
 	byteValue, _ := ioutil.ReadAll(jsonFile)
 	json.Unmarshal(byteValue, &actors)
 
-	// Now for each one of these users get their outbox
+	// Now follow each one of these users
 	fmt.Println("Users to relay:")
 	for _, user := range actors {
 		fmt.Println(user)
-		// ra := NewRemoteActor(user)
-		// fmt.Println(ra.outboxIri)
-
-		c := context.Background()
-
-		follow := streams.NewActivityStreamsFollow()
-		object := streams.NewActivityStreamsObjectProperty()
-		to := streams.NewActivityStreamsToProperty()
-		actorProperty := streams.NewActivityStreamsActorProperty()
-		iri, err := url.Parse(user)
-		// iri, err := url.Parse("https://print3d.social/users/qwazix/outbox")
-		if err != nil {
-			fmt.Println("something is wrong when parsing the remote" +
-				"actors iri into a url")
-			fmt.Println(err)
+		actor, err := MakeActor("Pherephone", "pherephone repeats", "service", "http://floorb.qwazix.com/actor")
+		if err != nil{
+			fmt.Println("Couldn't create local actor")
 			return
 		}
-		to.AppendIRI(iri)
-		object.AppendIRI(iri)
-
-		// add "from" actor
-		iri, err = url.Parse("http://floorb.qwazix.com/actor")
-		if err != nil {
-			fmt.Println("something is wrong when parsing the local" +
-				"actors iri into a url")
-			fmt.Println(err)
-			return
-		}
-		actorProperty.AppendIRI(iri)
-		follow.SetActivityStreamsObject(object)
-		follow.SetActivityStreamsTo(to)
-		follow.SetActivityStreamsActor(actorProperty)
-
-		// fmt.Println(c)
-		// fmt.Println(iri)
-		// fmt.Println(follow)
-
-		go actor.Send(c, iri, follow)
-		// PrettyPrint(ra.getLatestPosts(10))
+		actor.Follow(user)
 	}
 
 	http.HandleFunc("/hi", func(w http.ResponseWriter, r *http.Request) {

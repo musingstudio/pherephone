@@ -34,10 +34,10 @@ func NewRemoteActor(iri string) RemoteActor {
 
 	outboxIri := info["outbox"].(string)
 
-	return RemoteActor{
-		iri: iri,
-		outboxIri: outboxIri,
-	}
+		return RemoteActor{
+			iri: iri,
+			outboxIri: outboxIri,
+		}
 }
 
 func (ra RemoteActor) getLatestPosts(number int) map[string]interface{} {
