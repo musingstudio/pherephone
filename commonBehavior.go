@@ -41,7 +41,7 @@ func (a *commonBehavior) AuthenticateGetOutbox(c context.Context, w http.Respons
 func (a *commonBehavior) GetOutbox(c context.Context, r *http.Request) (ocp vocab.ActivityStreamsOrderedCollectionPage, err error) {
 	//TODO
 	// var iri *url.URL
-	iri, err := url.Parse("http://floorb.qwazix.com/actor/outbox")
+	iri, err := url.Parse("http://floorb.qwazix.com/outbox")
 	if err != nil{
 		fmt.Println("something went wrong with the parsing of the outbox url")
 		fmt.Println(err)

@@ -64,15 +64,15 @@ func (d *database) Exists(c context.Context, id *url.URL) (exists bool, err erro
 func (d *database) Get(c context.Context, id *url.URL) (value vocab.Type, err error) {
 	b := []byte(`{"@context": "https://www.w3.org/ns/activitystreams",
 					"type": "Person",
-					"id": "https://floorb.qwazix.com/actor/",
+					"id": "https://floorb.qwazix.com/",
 					"name": "Alyssa P. Hacker",
 					"preferredUsername": "alyssa",
 					"summary": "Lisp enthusiast hailing from MIT",
-					"inbox": "https://floorb.qwazix.com/actor/inbox/",
-					"outbox": "https://floorb.qwazix.com/actor/outbox/",
-					"followers": "https://floorb.qwazix.com/actor/followers/",
-					"following": "https://floorb.qwazix.com/actor/following/",
-					"liked": "https://floorb.qwazix.com/actor/liked/"}`)
+					"inbox": "https://floorb.qwazix.com/inbox/",
+					"outbox": "https://floorb.qwazix.com/outbox/",
+					"followers": "https://floorb.qwazix.com/followers/",
+					"following": "https://floorb.qwazix.com/following/",
+					"liked": "https://floorb.qwazix.com/liked/"}`)
 	  var jsonMap map[string]interface{}
 	  if err = json.Unmarshal(b, &jsonMap); err != nil {
 		panic(err)

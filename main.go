@@ -75,10 +75,29 @@ func main() {
 		//
 		// Handle non-ActivityPub request, such as serving a webpage.
 	}
+
+	var actorHandler http.HandlerFunc = func(w http.ResponseWriter, r *http.Request) {
+		// Populate c with request-specific information
+		fmt.Fprintf(w, `{"@context":	"https://www.w3.org/ns/activitystreams",
+										"type": "Person",
+										"id": "http://floorb.qwazix.com/actor/",
+										"name": "Alyssa P. Hacker",
+										"preferredUsername": "pherephone",
+										"summary": "pherephone is somebody that repeats others",
+										"inbox": "http://floorb.qwazix.com/actor/inbox/",
+										"outbox": "http://floorb.qwazix.com/actor/outbox/",
+										"followers": "http://floorb.qwazix.com/actor/followers/",
+										"following": "http://floorb.qwazix.com/actor/following/",
+										"liked": "http://floorb.qwazix.com/actor/liked/"}`)
+		fmt.Println("aaa")
+	}
+
 	// Add the handlers to a HTTP server
 	//   serveMux := http.NewServeMux()
 	http.HandleFunc("/actor/outbox", outboxHandler)
 	http.HandleFunc("/actor/inbox", inboxHandler)
+	http.HandleFunc("/actor", actorHandler)
+	http.HandleFunc("/actor/", actorHandler)
 
 	// get the list of users to relay
 	jsonFile, err := os.Open("actors.json")
@@ -105,6 +124,7 @@ func main() {
 		follow := streams.NewActivityStreamsFollow()
 		object := streams.NewActivityStreamsObjectProperty()
 		to := streams.NewActivityStreamsToProperty()
+		actorProperty := streams.NewActivityStreamsActorProperty()
 		iri, err := url.Parse(user)
 		// iri, err := url.Parse("https://print3d.social/users/qwazix/outbox")
 		if err != nil {
@@ -115,23 +135,25 @@ func main() {
 		}
 		to.AppendIRI(iri)
 		object.AppendIRI(iri)
-		follow.SetActivityStreamsObject(object)
-		follow.SetActivityStreamsTo(to)
 
-		iri, err = url.Parse("http://floorb.qwazix.com/actor/outbox")
-
+		// add "from" actor
+		iri, err = url.Parse("http://floorb.qwazix.com/actor")
 		if err != nil {
 			fmt.Println("something is wrong when parsing the local" +
 				"actors iri into a url")
 			fmt.Println(err)
 			return
 		}
+		actorProperty.AppendIRI(iri)
+		follow.SetActivityStreamsObject(object)
+		follow.SetActivityStreamsTo(to)
+		follow.SetActivityStreamsActor(actorProperty)
 
 		// fmt.Println(c)
 		// fmt.Println(iri)
 		// fmt.Println(follow)
 
-		actor.Send(c, iri, follow)
+		go actor.Send(c, iri, follow)
 		// PrettyPrint(ra.getLatestPosts(10))
 	}
 
