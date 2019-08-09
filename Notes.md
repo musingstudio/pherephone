@@ -206,3 +206,15 @@ Here's what a boost looks like
     "atomUri": "https://mastodon.social/users/qwazix/statuses/102565077202414254/activity"
 }
 ```
+
+## I will keep the `actor.handleOutbox` function compatible with `http.Handler` 
+
+I want users to be able to use this as simply as possible so this way this will work
+
+``` go
+	actor, _ := MakeActor("username", "My name is", "Service", domainName+"/"+"username")
+    var outboxHandler http.HandlerFunc = actor.handleOutbox
+```
+
+This means that if we want to handle non ActivityPub requests to the same endpoint we have 
+to return whether we did handle the request

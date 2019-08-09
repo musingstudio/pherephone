@@ -20,54 +20,48 @@ import (
 	"context"
 )
 
-var domainName string = "http://floorb.qwazix.com"
+var domainName = "http://floorb.qwazix.com"
 
 func main() {
 
-	var clock *clock
 	var err error
-	var db *database
 
 	fmt.Println("=========================================================================")
 
-	clock, err = newClock("Europe/Athens")
-	if err != nil {
-		return
-	}
-
-	common := newCommonBehavior(db)
-	federating := newFederatingBehavior(db)
-	pubActor := pub.NewFederatingActor(common, federating, db, clock)
-
-	var outboxHandler http.HandlerFunc = func(w http.ResponseWriter, r *http.Request) {
-		c := context.Background()
-		// Populate c with request-specific information
-		if handled, err := pubActor.PostOutbox(c, w, r); err != nil {
-			// Write to w
-			return
-		} else if handled {
-			return
-		} else if handled, err = pubActor.GetOutbox(c, w, r); err != nil {
-			// Write to w
-			return
-		} else if handled {
-			fmt.Println("gethandled")
+	var outboxHandler http.HandlerFunc = 
+	
+	func(w http.ResponseWriter, r *http.Request) {
+		username := mux.Vars(r)["actor"]
+		// TODO replace this with a LoadActor that loads an actor from the database with this username
+		actor, err := MakeActor(username, "My name is"+username, "Service", domainName+"/"+username)
+		if err != nil {
+			fmt.Println("Can't create local actor")
 			return
 		}
-		// else:
-		//
-		// Handle non-ActivityPub request, such as serving a webpage.
+		if pub.IsActivityPubRequest(r){
+			actor.handleOutbox(w, r)
+		} else {
+			// The above does nothing if it's a non-ActivityPub request so 
+			// handle non-ActivityPub request here, such as serving a webpage.
+		}
 	}
 	var inboxHandler http.HandlerFunc = func(w http.ResponseWriter, r *http.Request) {
 		c := context.Background()
 		// Populate c with request-specific information
-		if handled, err := pubActor.PostInbox(c, w, r); err != nil {
+		username := mux.Vars(r)["actor"]
+		// TODO replace this with a LoadActor that loads an actor from the database with this username
+		actor, err := MakeActor(username, "My name is"+username, "Service", domainName+"/"+username)
+		if err != nil {
+			fmt.Println("Can't create local actor")
+			return
+		}
+		if handled, err := actor.pubActor.PostInbox(c, w, r); err != nil {
 			fmt.Println(err)
 			// Write to w
 			return
 		} else if handled {
 			return
-		} else if handled, err = pubActor.GetInbox(c, w, r); err != nil {
+		} else if handled, err = actor.pubActor.GetInbox(c, w, r); err != nil {
 			// Write to w
 			return
 		} else if handled {

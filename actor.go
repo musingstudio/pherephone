@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/url"
+	"net/http"
 
 	"github.com/go-fed/activity/streams"
 
@@ -139,4 +140,20 @@ func (a *Actor) whoAmI() string {
 	"followers": "http://floorb.qwazix.com/actor/followers/",
 	"following": "http://floorb.qwazix.com/actor/following/",
 	"liked": "http://floorb.qwazix.com/`+a.name+`/liked/"}`
+}
+
+func (a *Actor) handleOutbox(w http.ResponseWriter, r *http.Request){
+	c := context.Background()
+	if handled, err := a.pubActor.PostOutbox(c, w, r); err != nil {
+		// Write to w
+		return
+	} else if handled {
+		return
+	} else if handled, err = a.pubActor.GetOutbox(c, w, r); err != nil {
+		// Write to w
+		return
+	} else if handled {
+		fmt.Println("gethandled")
+		return
+	}
 }
