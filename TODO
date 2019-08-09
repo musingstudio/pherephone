@@ -4,9 +4,13 @@
     temporary solution until we really follow the actors 
     and get notifications in timely manner)
 [✔] Follow users
+[✔] Announcements (read up how boost json looks like)
+[✔] Federate the post to our followers (hardcoded for now)
+[ ] Handle more than one local actors
+[ ] Handle http signatures
+[ ] Implement database backend
 [ ] Check if we are already following users
-[ ] On GetOutbox read the file and present a list of the
-    last posts as Announcements (read up how boost json looks like)
-[ ] Federate the post to our followers (hardcoded for now)
 [ ] Handle being followed
-[ ] Replace text files with database
+[ ] On GetOutbox read the database and present a list of the
+    last posts.
+[ ] Refactor, comment and clean up
