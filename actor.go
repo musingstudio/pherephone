@@ -112,7 +112,7 @@ func (a *Actor) Announce(object string) error {
 	objectProperty := streams.NewActivityStreamsObjectProperty()
 	objectProperty.AppendIRI(announcedIRI)
 	actorProperty := streams.NewActivityStreamsActorProperty()
-	actorProperty.AppendIRI(actor.nuIri)
+	actorProperty.AppendIRI(a.nuIri)
 	to := streams.NewActivityStreamsToProperty()
 	to.AppendIRI(activityStreamsPublic)
 	cc := streams.NewActivityStreamsCcProperty()

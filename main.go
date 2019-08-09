@@ -19,7 +19,7 @@ import (
 	"context"
 )
 
-var actor Actor
+var domainName string = "http://floorb.qwazix.com"
 
 func main() {
 
@@ -29,12 +29,6 @@ func main() {
 
 	fmt.Println("=========================================================================")
 
-	actor, err = MakeActor("Pherephone", "pherephone repeats", "service", "http://floorb.qwazix.com/actor")
-	if err != nil{
-		fmt.Println("Couldn't create local actor")
-		return
-	}
-
 	clock, err = newClock("Europe/Athens")
 	if err != nil {
 		return
@@ -42,17 +36,17 @@ func main() {
 
 	common := newCommonBehavior(db)
 	federating := newFederatingBehavior(db)
-	actor := pub.NewFederatingActor(common, federating, db, clock)
+	pubActor := pub.NewFederatingActor(common, federating, db, clock)
 
 	var outboxHandler http.HandlerFunc = func(w http.ResponseWriter, r *http.Request) {
 		c := context.Background()
 		// Populate c with request-specific information
-		if handled, err := actor.PostOutbox(c, w, r); err != nil {
+		if handled, err := pubActor.PostOutbox(c, w, r); err != nil {
 			// Write to w
 			return
 		} else if handled {
 			return
-		} else if handled, err = actor.GetOutbox(c, w, r); err != nil {
+		} else if handled, err = pubActor.GetOutbox(c, w, r); err != nil {
 			// Write to w
 			return
 		} else if handled {
@@ -66,13 +60,13 @@ func main() {
 	var inboxHandler http.HandlerFunc = func(w http.ResponseWriter, r *http.Request) {
 		c := context.Background()
 		// Populate c with request-specific information
-		if handled, err := actor.PostInbox(c, w, r); err != nil {
+		if handled, err := pubActor.PostInbox(c, w, r); err != nil {
 			fmt.Println(err)
 			// Write to w
 			return
 		} else if handled {
 			return
-		} else if handled, err = actor.GetInbox(c, w, r); err != nil {
+		} else if handled, err = pubActor.GetInbox(c, w, r); err != nil {
 			// Write to w
 			return
 		} else if handled {

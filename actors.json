@@ -1,3 +1,9 @@
 [
-    "http://writefreely.xps/api/collections/qwazix"
+    {"myAwesomeList" : [
+        "http://writefreely.xps/api/collections/qwazix"
+    ]},
+    {"yetAnotherList" : [
+        "http://writefreely.xps/api/collections/qwazix",
+        "http://mixt.qwazix.com/api/collections/qwazix"
+    ]}
 ]

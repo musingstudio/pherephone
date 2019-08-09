@@ -9,6 +9,8 @@ import (
 
 	"github.com/go-fed/activity/pub"
 	"github.com/go-fed/activity/streams/vocab"
+
+	// "strings"
 )
 
 type federatingBehavior struct {
@@ -26,6 +28,18 @@ func (f *federatingBehavior) PostInboxRequestBodyHook(c context.Context, r *http
 	article := object.Begin().GetActivityStreamsArticle()
 	id := article.GetActivityStreamsId()
 	fmt.Println(id)
+
+	// parts := strings.Split(r.RequestURI, "/")
+	// the last part (https://example.com/actor/qwazix)
+	// actorName := parts[len(parts)-1]
+
+	// TODO: select name and stuff from database according to URI
+
+	actor, err := MakeActor("Pherephone", "pherephone repeats", "service", domainName+r.RequestURI)
+	if err != nil{
+		fmt.Println("Couldn't create local actor")
+		return
+	}
 
 	actor.Announce(id.GetIRI().String())
 	return
