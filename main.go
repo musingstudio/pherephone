@@ -8,6 +8,7 @@ import (
 	// "errors"
 	"log"
 	"net/http"
+
 	// "net/url"
 
 	"encoding/json"
@@ -18,13 +19,21 @@ import (
 	"context"
 )
 
-func main() {
+var actor Actor
 
-	fmt.Println("=========================================================================")
+func main() {
 
 	var clock *clock
 	var err error
 	var db *database
+
+	fmt.Println("=========================================================================")
+
+	actor, err = MakeActor("Pherephone", "pherephone repeats", "service", "http://floorb.qwazix.com/actor")
+	if err != nil{
+		fmt.Println("Couldn't create local actor")
+		return
+	}
 
 	clock, err = newClock("Europe/Athens")
 	if err != nil {
@@ -58,6 +67,7 @@ func main() {
 		c := context.Background()
 		// Populate c with request-specific information
 		if handled, err := actor.PostInbox(c, w, r); err != nil {
+			fmt.Println(err)
 			// Write to w
 			return
 		} else if handled {
@@ -94,6 +104,7 @@ func main() {
 	//   serveMux := http.NewServeMux()
 	http.HandleFunc("/actor/outbox", outboxHandler)
 	http.HandleFunc("/actor/inbox", inboxHandler)
+	http.HandleFunc("/actor/inbox/", inboxHandler)
 	http.HandleFunc("/actor", actorHandler)
 	http.HandleFunc("/actor/", actorHandler)
 
@@ -111,16 +122,18 @@ func main() {
 	json.Unmarshal(byteValue, &actors)
 
 	// Now follow each one of these users
-	fmt.Println("Users to relay:")
-	for _, user := range actors {
-		fmt.Println(user)
-		actor, err := MakeActor("Pherephone", "pherephone repeats", "service", "http://floorb.qwazix.com/actor")
-		if err != nil{
-			fmt.Println("Couldn't create local actor")
-			return
-		}
-		actor.Follow(user)
-	}
+	// I want to focus on handling the incoming messages before
+	// dealing with databases so I will just comment this out for now
+	// fmt.Println("Users to relay:")
+	// for _, user := range actors {
+	// 	fmt.Println(user)
+	// 	actor, err := MakeActor("Pherephone", "pherephone repeats", "service", "http://floorb.qwazix.com/actor")
+	// 	if err != nil{
+	// 		fmt.Println("Couldn't create local actor")
+	// 		return
+	// 	}
+	// 	actor.Follow(user)
+	// }
 
 	http.HandleFunc("/hi", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "Hi")

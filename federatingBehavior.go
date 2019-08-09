@@ -1,6 +1,7 @@
 package main
 
 import (
+	// "github.com/go-fed/activity/streams"
 	"context"
 	"fmt"
 	"net/http"
@@ -21,13 +22,19 @@ func newFederatingBehavior(db *database) *federatingBehavior {
 }
 
 func (f *federatingBehavior) PostInboxRequestBodyHook(c context.Context, r *http.Request, activity pub.Activity) (out context.Context, err error) {
+	object := activity.GetActivityStreamsObject()
+	article := object.Begin().GetActivityStreamsArticle()
+	id := article.GetActivityStreamsId()
+	fmt.Println(id)
+
+	actor.Announce(id.GetIRI().String())
 	return
 }
 
 func (f *federatingBehavior) AuthenticatePostInbox(c context.Context, w http.ResponseWriter, r *http.Request) (authenticated bool, err error) {
 	// TODO
 	// 1. Validate HTTP Signatures
-	return
+	return true, nil
 }
 
 func (f *federatingBehavior) Blocked(c context.Context, actorIRIs []*url.URL) (blocked bool, err error) {
