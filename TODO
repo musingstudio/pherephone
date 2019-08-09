@@ -6,7 +6,9 @@
 [✔] Follow users
 [✔] Announcements (read up how boost json looks like)
 [✔] Federate the post to our followers (hardcoded for now)
+[ ] Actor should have pubActor not the other way around
 [ ] Handle more than one local actors
+[ ] Handle the /actor endpoint
 [ ] Handle http signatures
 [ ] Implement database backend
 [ ] Check if we are already following users

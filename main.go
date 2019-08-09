@@ -5,6 +5,7 @@ import (
 
 	// "github.com/go-fed/activity/streams"
 	"github.com/go-fed/activity/pub"
+	"github.com/gorilla/mux"
 	// "errors"
 	"log"
 	"net/http"
@@ -79,28 +80,26 @@ func main() {
 	}
 
 	var actorHandler http.HandlerFunc = func(w http.ResponseWriter, r *http.Request) {
-		// Populate c with request-specific information
-		fmt.Fprintf(w, `{"@context":	"https://www.w3.org/ns/activitystreams",
-										"type": "Person",
-										"id": "http://floorb.qwazix.com/actor/",
-										"name": "Alyssa P. Hacker",
-										"preferredUsername": "pherephone",
-										"summary": "pherephone is somebody that repeats others",
-										"inbox": "http://floorb.qwazix.com/actor/inbox/",
-										"outbox": "http://floorb.qwazix.com/actor/outbox/",
-										"followers": "http://floorb.qwazix.com/actor/followers/",
-										"following": "http://floorb.qwazix.com/actor/following/",
-										"liked": "http://floorb.qwazix.com/actor/liked/"}`)
 		fmt.Println("Remote server just fetched our /actor endpoint")
+
+		username := mux.Vars(r)["actor"]
+		// TODO replace this with a LoadActor that loads an actor from the database with this username
+		actor, err := MakeActor(username, "My name is"+username, "Service", domainName+"/"+username)
+		if err != nil {
+			fmt.Println("Can't create local actor")
+			return
+		}
+		fmt.Fprintf(w, actor.whoAmI())
 	}
 
 	// Add the handlers to a HTTP server
-	//   serveMux := http.NewServeMux()
-	http.HandleFunc("/actor/outbox", outboxHandler)
-	http.HandleFunc("/actor/inbox", inboxHandler)
-	http.HandleFunc("/actor/inbox/", inboxHandler)
-	http.HandleFunc("/actor", actorHandler)
-	http.HandleFunc("/actor/", actorHandler)
+	gorilla := mux.NewRouter()
+	gorilla.HandleFunc("/{actor}/outbox", outboxHandler)
+	gorilla.HandleFunc("/{actor}/inbox", inboxHandler)
+	gorilla.HandleFunc("/{actor}/inbox/", inboxHandler)
+	gorilla.HandleFunc("/{actor}", actorHandler)
+	gorilla.HandleFunc("/{actor}/", actorHandler)
+	http.Handle("/", gorilla)
 
 	// get the list of users to relay
 	jsonFile, err := os.Open("actors.json")

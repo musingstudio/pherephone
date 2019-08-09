@@ -126,3 +126,17 @@ func (a *Actor) Announce(object string) error {
 
 	return nil
 }
+
+func (a *Actor) whoAmI() string {
+	return `{"@context":	"https://www.w3.org/ns/activitystreams",
+	"type": "Person",
+	"id": "http://floorb.qwazix.com/actor/",
+	"name": "Alyssa P. Hacker",
+	"preferredUsername": "pherephone",
+	"summary": "pherephone is somebody that repeats others",
+	"inbox": "http://floorb.qwazix.com/actor/inbox/",
+	"outbox": "http://floorb.qwazix.com/actor/outbox/",
+	"followers": "http://floorb.qwazix.com/actor/followers/",
+	"following": "http://floorb.qwazix.com/actor/following/",
+	"liked": "http://floorb.qwazix.com/`+a.name+`/liked/"}`
+}
