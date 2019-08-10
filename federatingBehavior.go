@@ -15,6 +15,7 @@ import (
 
 type federatingBehavior struct {
 	db *database
+	parent *Actor
 }
 
 func newFederatingBehavior(db *database) *federatingBehavior {
@@ -35,13 +36,7 @@ func (f *federatingBehavior) PostInboxRequestBodyHook(c context.Context, r *http
 
 	// TODO: select name and stuff from database according to URI
 
-	actor, err := MakeActor("Pherephone", "pherephone repeats", "service", domainName+r.RequestURI)
-	if err != nil{
-		fmt.Println("Couldn't create local actor")
-		return
-	}
-
-	actor.Announce(id.GetIRI().String())
+	f.parent.Announce(id.GetIRI().String())
 	return
 }
 

@@ -16,3 +16,6 @@
 [ ] On GetOutbox read the database and present a list of the
     last posts.
 [ ] Refactor, comment and clean up
+
+[ ] Check if it's worth it to reuse pubActor instead of creating
+    a new one every time

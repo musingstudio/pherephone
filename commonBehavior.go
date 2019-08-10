@@ -67,7 +67,7 @@ func (a *commonBehavior) NewTransport(c context.Context, actorBoxIRI *url.URL, g
 		fmt.Println("something is wrong with the httpsigner function call")
 		fmt.Println(err)
 	}
-	pubKeyId := ""
+	pubKeyID := ""
 	rng := rand.Reader
 	privKey, err := rsa.GenerateKey(rng, 2048)
 	if err != nil{
@@ -75,7 +75,7 @@ func (a *commonBehavior) NewTransport(c context.Context, actorBoxIRI *url.URL, g
 		fmt.Println(err)
 	}
 
-	t = pub.NewHttpSigTransport(client, "pherephoneOfficial", clock, getSigner, postSigner, pubKeyId, privKey)
+	t = pub.NewHttpSigTransport(client, "pherephone", clock, getSigner, postSigner, pubKeyID, privKey)
 
 	return
 }

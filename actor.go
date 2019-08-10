@@ -3,8 +3,8 @@ package main
 import (
 	"context"
 	"fmt"
-	"net/url"
 	"net/http"
+	"net/url"
 
 	"github.com/go-fed/activity/streams"
 
@@ -33,21 +33,22 @@ func MakeActor(name, summary, actorType, iri string) (Actor, error) {
 
 	common := newCommonBehavior(db)
 	federating := newFederatingBehavior(db)
-	actor := pub.NewFederatingActor(common, federating, db, clock)
+	pubActor := pub.NewFederatingActor(common, federating, db, clock)
 	nuIri, err := url.Parse(iri)
 	if err != nil {
 		fmt.Println("Something went wrong when parsing the local actor uri into net/url")
 		return Actor{}, err
 	}
-
-	return Actor{
-		pubActor:  actor,
+	actor := Actor{
+		pubActor:  pubActor,
 		name:      name,
 		summary:   summary,
 		actorType: actorType,
 		iri:       iri,
 		nuIri:     nuIri,
-	}, nil
+	}
+	federating.parent = &actor
+	return actor, nil
 }
 
 // Follow a remote user by their iri
@@ -139,10 +140,12 @@ func (a *Actor) whoAmI() string {
 	"outbox": "http://floorb.qwazix.com/actor/outbox/",
 	"followers": "http://floorb.qwazix.com/actor/followers/",
 	"following": "http://floorb.qwazix.com/actor/following/",
-	"liked": "http://floorb.qwazix.com/`+a.name+`/liked/"}`
+	"liked": "http://floorb.qwazix.com/` + a.name + `/liked/"}`
 }
 
-func (a *Actor) handleOutbox(w http.ResponseWriter, r *http.Request){
+// HandleOutbox handles the outbox of our actor. It actually just
+// delegates to go-fed without doing anything in particular.
+func (a *Actor) HandleOutbox(w http.ResponseWriter, r *http.Request) {
 	c := context.Background()
 	if handled, err := a.pubActor.PostOutbox(c, w, r); err != nil {
 		// Write to w
@@ -154,6 +157,24 @@ func (a *Actor) handleOutbox(w http.ResponseWriter, r *http.Request){
 		return
 	} else if handled {
 		fmt.Println("gethandled")
+		return
+	}
+}
+
+// HandleInbox handles the outbox of our actor. It actually just
+// delegates to go-fed without doing anything in particular.
+func (a *Actor) HandleInbox(w http.ResponseWriter, r *http.Request) {
+	c := context.Background()
+	if handled, err := a.pubActor.PostInbox(c, w, r); err != nil {
+		fmt.Println(err)
+		// Write to w
+		return
+	} else if handled {
+		return
+	} else if handled, err = a.pubActor.GetInbox(c, w, r); err != nil {
+		// Write to w
+		return
+	} else if handled {
 		return
 	}
 }
