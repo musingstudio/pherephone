@@ -48,6 +48,7 @@ func MakeActor(name, summary, actorType, iri string) (Actor, error) {
 		nuIri:     nuIri,
 	}
 	federating.parent = &actor
+	common.parent = &actor
 	return actor, nil
 }
 

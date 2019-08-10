@@ -20,6 +20,7 @@ var _ pub.CommonBehavior = &commonBehavior{}
 
 type commonBehavior struct {
 	db *database
+	parent *Actor
 }
 
 func newCommonBehavior(db *database) *commonBehavior {

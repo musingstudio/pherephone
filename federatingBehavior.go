@@ -29,13 +29,6 @@ func (f *federatingBehavior) PostInboxRequestBodyHook(c context.Context, r *http
 	article := object.Begin().GetActivityStreamsArticle()
 	id := article.GetActivityStreamsId()
 	fmt.Println(id)
-
-	// parts := strings.Split(r.RequestURI, "/")
-	// the last part (https://example.com/actor/qwazix)
-	// actorName := parts[len(parts)-1]
-
-	// TODO: select name and stuff from database according to URI
-
 	f.parent.Announce(id.GetIRI().String())
 	return
 }
