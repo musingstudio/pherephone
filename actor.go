@@ -2,9 +2,12 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/url"
+	"os"
 
 	"github.com/go-fed/activity/streams"
 
@@ -17,6 +20,16 @@ type Actor struct {
 	name, summary, actorType, iri string
 	pubActor                      pub.FederatingActor
 	nuIri                         *url.URL
+	followers, following          map[string]struct{}
+}
+
+// ActorToSave is a stripped down actor representation
+// with exported properties in order for json to be
+// able to marshal it.
+// see https://stackoverflow.com/questions/26327391/json-marshalstruct-returns
+type ActorToSave struct {
+	Name, Summary, ActorType, IRI	string
+	Followers, Following			map[string]struct{}
 }
 
 // MakeActor returns a new local actor we can act
@@ -34,6 +47,8 @@ func MakeActor(name, summary, actorType, iri string) (Actor, error) {
 	common := newCommonBehavior(db)
 	federating := newFederatingBehavior(db)
 	pubActor := pub.NewFederatingActor(common, federating, db, clock)
+	followers := make(map[string]struct{})
+	following := make(map[string]struct{})
 	nuIri, err := url.Parse(iri)
 	if err != nil {
 		fmt.Println("Something went wrong when parsing the local actor uri into net/url")
@@ -46,10 +61,51 @@ func MakeActor(name, summary, actorType, iri string) (Actor, error) {
 		actorType: actorType,
 		iri:       iri,
 		nuIri:     nuIri,
+		followers: followers,
+		following: following,
 	}
+
+	err = actor.save()
+	if err != nil {
+		return actor, err
+	}
+
 	federating.parent = &actor
 	common.parent = &actor
 	return actor, nil
+}
+
+// save the actor to file
+func (a *Actor) save() error {
+
+	// check if we already have a directory to save actors
+	// and if not, create it
+	if _, err := os.Stat("actors"); os.IsNotExist(err) {
+		os.Mkdir("actors", 755)
+	}
+
+	actorToSave := ActorToSave{
+		Name:      a.name,
+		Summary:   a.summary,
+		ActorType: a.actorType,
+		IRI:       a.iri,
+		Followers: a.followers,
+		Following: a.following,
+	}
+
+	actorJSON, err := json.MarshalIndent(actorToSave, "", "\t")
+	if err != nil {
+		fmt.Println("error Marshalling actor json")
+		return err
+	}
+	fmt.Println(actorToSave)
+	fmt.Println(string(actorJSON))
+	err = ioutil.WriteFile("actors/"+a.name+".json", actorJSON, 0644)
+	if err != nil {
+		fmt.Printf("WriteFileJson ERROR: %+v", err)
+		return err
+	}
+	return nil
 }
 
 // Follow a remote user by their iri
@@ -89,7 +145,11 @@ func (a *Actor) Follow(user string) error {
 	// fmt.Println(iri)
 	// fmt.Println(follow)
 
-	go a.pubActor.Send(c, iri, follow)
+	if _, ok := a.following[user]; !ok {
+		a.following[user] = struct{}{}
+		go a.pubActor.Send(c, iri, follow)
+		a.save()
+	}
 
 	return nil
 }
@@ -106,6 +166,7 @@ func (a *Actor) Announce(object string) error {
 	}
 	activityStreamsPublic, err := url.Parse("https://www.w3.org/ns/activitystreams#Public")
 
+	// TODO read the followers from the db here (also they are more than one)
 	followers, err := url.Parse("http://writefreely.xps/api/collections/qwazix")
 	if err != nil {
 		fmt.Println("Can't parse follower url")

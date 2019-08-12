@@ -12,12 +12,19 @@
 [✔] Fix the json unmarshalling code to read multiple actors
 [✔] Handle the /actor endpoint
 [✔] Create configuration file
-[ ] Handle http signatures
 [ ] Implement database backend
+    [ ] Create a file with the actors we have, their following
+        and their followers.
+        [ ] `MakeActor` should create a file with that actor.
+        [ ] Implement `LoadActor`
+        [ ] All but `main.go` should run LoadActor instead of MakeActor
+        [ ] `actor.Follow` should write the new following to file
+        [ ] When followed, the handler should write the new follower to file
+        [ ] Handle being followed
+[ ] Handle http signatures
 [ ] Write all the announcements (boosts) to the database to 
     their correct actors
 [ ] Check if we are already following users
-[ ] Handle being followed
 [ ] On GetOutbox read the database and present a list of the
     last posts.
 [ ] Refactor, comment and clean up
