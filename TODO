@@ -10,7 +10,8 @@
 [✔] Handle more than one local actors
 [✔] Fix the json to host those multiple actors
 [✔] Fix the json unmarshalling code to read multiple actors
-[ ] Handle the /actor endpoint
+[✔] Handle the /actor endpoint
+[ ] Create configuration file
 [ ] Handle http signatures
 [ ] Implement database backend
 [ ] Write all the announcements (boosts) to the database to 
@@ -20,6 +21,7 @@
 [ ] On GetOutbox read the database and present a list of the
     last posts.
 [ ] Refactor, comment and clean up
+[ ] Split to pherephone and activityServe
 
 [ ] Check if it's worth it to reuse pubActor instead of creating
     a new one every time

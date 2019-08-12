@@ -67,6 +67,7 @@ func main() {
 
 		username := mux.Vars(r)["actor"]
 		// TODO replace this with a LoadActor that loads an actor from the database with this username
+		// error out if this actor does not exist
 		actor, err := MakeActor(username, "My name is"+username, "Service", domainName+"/"+username)
 		if err != nil {
 			fmt.Println("Can't create local actor")
