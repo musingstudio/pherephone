@@ -18,6 +18,8 @@ import (
 
 	// "html"
 	// "context"
+
+	// "github.com/davecgh/go-spew/spew"
 )
 
 var domainName = "http://floorb.qwazix.com"
@@ -90,24 +92,33 @@ func main() {
 		fmt.Println(err)
 	}
 
-	var actors []string
-
+	// Unmarshall it into a map of string arrays
+	whoFollowsWho := make(map[string][]string)
 	byteValue, _ := ioutil.ReadAll(jsonFile)
-	json.Unmarshal(byteValue, &actors)
+	json.Unmarshal(byteValue, &whoFollowsWho)
 
-	// Now follow each one of these users
-	// I want to focus on handling the incoming messages before
-	// dealing with databases so I will just comment this out for now
-	// fmt.Println("Users to relay:")
-	// for _, user := range actors {
-	// 	fmt.Println(user)
-	// 	actor, err := MakeActor("Pherephone", "pherephone repeats", "service", "http://floorb.qwazix.com/actor")
-	// 	if err != nil{
-	// 		fmt.Println("Couldn't create local actor")
-	// 		return
-	// 	}
-	// 	actor.Follow(user)
-	// }
+	// fmt.Println(string(byteValue))
+	
+	for follower, followees := range whoFollowsWho {
+		// Now follow each one of these users
+		// I want to focus on handling the incoming messages before
+		// dealing with databases so I will just comment this out for now
+		fmt.Println("Local Actor: "+ follower)
+		followerActor, err := MakeActor(follower, "emptySummary", "Service", domainName+"/"+follower)
+		if err != nil {
+			fmt.Println("error creating local follower")
+			return
+		}
+		fmt.Println("Users to relay:")
+		for _, followee := range followees {
+			fmt.Println(followee)
+			if err != nil{
+				fmt.Println("Couldn't create local actor")
+				return
+			}
+			followerActor.Follow(followee)
+		}
+	}
 
 	http.HandleFunc("/hi", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "Hi")

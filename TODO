@@ -8,9 +8,13 @@
 [✔] Federate the post to our followers (hardcoded for now)
 [✔] Actor should have pubActor not the other way around
 [✔] Handle more than one local actors
+[✔] Fix the json to host those multiple actors
+[✔] Fix the json unmarshalling code to read multiple actors
 [ ] Handle the /actor endpoint
 [ ] Handle http signatures
 [ ] Implement database backend
+[ ] Write all the announcements (boosts) to the database to 
+    their correct actors
 [ ] Check if we are already following users
 [ ] Handle being followed
 [ ] On GetOutbox read the database and present a list of the

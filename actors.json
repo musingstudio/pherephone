@@ -1,9 +1,9 @@
-[
-    {"myAwesomeList" : [
+{
+    "myAwesomeList" : [
         "http://writefreely.xps/api/collections/qwazix"
-    ]},
-    {"yetAnotherList" : [
+    ],
+    "yetAnotherList" : [
         "http://writefreely.xps/api/collections/qwazix",
         "http://mixt.qwazix.com/api/collections/qwazix"
-    ]}
-]
+    ]
+}
