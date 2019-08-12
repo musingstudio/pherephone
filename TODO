@@ -11,7 +11,7 @@
 [✔] Fix the json to host those multiple actors
 [✔] Fix the json unmarshalling code to read multiple actors
 [✔] Handle the /actor endpoint
-[ ] Create configuration file
+[✔] Create configuration file
 [ ] Handle http signatures
 [ ] Implement database backend
 [ ] Write all the announcements (boosts) to the database to 

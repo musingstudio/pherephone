@@ -16,13 +16,15 @@ import (
 	"io/ioutil"
 	"os"
 
+	"gopkg.in/ini.v1"
+
 	// "html"
 	// "context"
 
 	// "github.com/davecgh/go-spew/spew"
 )
 
-var domainName = "http://floorb.qwazix.com"
+var baseURL = "http://example.com"
 
 func main() {
 
@@ -30,10 +32,23 @@ func main() {
 
 	fmt.Println("=========================================================================")
 
+	// read configuration file (config.ini)
+
+	cfg, err := ini.Load("config.ini")
+    if err != nil {
+        fmt.Printf("Fail to read file: %v", err)
+        os.Exit(1)
+    }
+
+	// Classic read of values, default section can be represented as empty string
+	baseURL = cfg.Section("general").Key("baseURL").String()
+
+    fmt.Println("Domain Name:", baseURL)
+
 	var outboxHandler http.HandlerFunc = func(w http.ResponseWriter, r *http.Request) {
 		username := mux.Vars(r)["actor"]
 		// TODO replace this with a LoadActor that loads an actor from the database with this username
-		actor, err := MakeActor(username, "My name is"+username, "Service", domainName+"/"+username)
+		actor, err := MakeActor(username, "My name is"+username, "Service", baseURL+"/"+username)
 		if err != nil {
 			fmt.Println("Can't create local actor")
 			return
@@ -49,7 +64,7 @@ func main() {
 		// Populate c with request-specific information
 		username := mux.Vars(r)["actor"]
 		// TODO replace this with a LoadActor that loads an actor from the database with this username
-		actor, err := MakeActor(username, "My name is"+username, "Service", domainName+"/"+username)
+		actor, err := MakeActor(username, "My name is"+username, "Service", baseURL+"/"+username)
 		if err != nil {
 			fmt.Println("Can't create local actor")
 			return
@@ -68,7 +83,7 @@ func main() {
 		username := mux.Vars(r)["actor"]
 		// TODO replace this with a LoadActor that loads an actor from the database with this username
 		// error out if this actor does not exist
-		actor, err := MakeActor(username, "My name is"+username, "Service", domainName+"/"+username)
+		actor, err := MakeActor(username, "My name is"+username, "Service", baseURL+"/"+username)
 		if err != nil {
 			fmt.Println("Can't create local actor")
 			return
@@ -105,7 +120,7 @@ func main() {
 		// I want to focus on handling the incoming messages before
 		// dealing with databases so I will just comment this out for now
 		fmt.Println("Local Actor: "+ follower)
-		followerActor, err := MakeActor(follower, "emptySummary", "Service", domainName+"/"+follower)
+		followerActor, err := MakeActor(follower, "emptySummary", "Service", baseURL+"/"+follower)
 		if err != nil {
 			fmt.Println("error creating local follower")
 			return
