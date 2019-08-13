@@ -15,7 +15,7 @@
 [ ] Implement database backend
     [ ] Create a file with the actors we have, their following
         and their followers.
-        [ ] `MakeActor` should create a file with that actor.
+        [✔] `MakeActor` should create a file with that actor.
         [ ] Implement `LoadActor`
         [ ] All but `main.go` should run LoadActor instead of MakeActor
         [ ] `actor.Follow` should write the new following to file
@@ -29,6 +29,7 @@
     last posts.
 [ ] Refactor, comment and clean up
 [ ] Split to pherephone and activityServe
+[ ] Check local actor names for characters illegal for filenames and ban them
 
 [ ] Check if it's worth it to reuse pubActor instead of creating
     a new one every time

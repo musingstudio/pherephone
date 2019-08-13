@@ -32,21 +32,51 @@ type ActorToSave struct {
 	Followers, Following			map[string]struct{}
 }
 
-// MakeActor returns a new local actor we can act
-// on behalf of
-func MakeActor(name, summary, actorType, iri string) (Actor, error) {
+func newPubActor() (pub.FederatingActor, *commonBehavior, *federatingBehavior){
 	var clock *clock
-	var err error
-	var db *database
+    var err error
+    var db *database
 
-	clock, err = newClock("Europe/Athens")
+	clock, _ = newClock("Europe/Athens")
 	if err != nil {
-		return Actor{}, err
+		fmt.Println("error creating clock")
 	}
-
+	
 	common := newCommonBehavior(db)
 	federating := newFederatingBehavior(db)
 	pubActor := pub.NewFederatingActor(common, federating, db, clock)
+
+	//kludgey, but we need common and federating to set their parents
+	//can't think of a better architecture for now
+	return pubActor, common, federating
+}
+
+// // set up and return a pubActor object for our actor
+// func (a *Actor) getPubActor() pub.FederatingActor{
+// 	// if we already have one return it
+// 	if a.pubActor != nil {
+// 		return a.pubActor
+// 	} // else make a new one
+// 	// := cannot mix assingment with declaration so
+// 	// I either had to make an extra variable and then
+// 	// assign a.pubActor to pubActor or declare the behaviors
+// 	// beforehand. I chose the latter
+// 	var common *commonBehavior
+// 	var federating *federatingBehavior
+// 	a.pubActor, common, federating = newPubActor()
+// 	// assign our actor pointer to be the parent of 
+// 	// these two behaviors so that afterwards in e.g.
+// 	// GetInbox we can know which actor we are talking 
+// 	// about
+// 	federating.parent = a
+// 	common.parent = a
+// 	return a.pubActor
+// }
+
+// MakeActor returns a new local actor we can act
+// on behalf of
+func MakeActor(name, summary, actorType, iri string) (Actor, error) {
+	pubActor, common, federating := newPubActor()
 	followers := make(map[string]struct{})
 	following := make(map[string]struct{})
 	nuIri, err := url.Parse(iri)
@@ -106,6 +136,49 @@ func (a *Actor) save() error {
 		return err
 	}
 	return nil
+}
+
+// LoadActor searches the filesystem and creates an Actor
+// from the data in name.json
+func LoadActor(name string) (Actor, error) {
+	jsonFile := "actors/"+name
+	fileHandle, err := os.Open(jsonFile)
+	if os.IsNotExist(err){
+		fmt.Println("We don't have this kind of actor stored")
+		return Actor{}, err
+	}
+	byteValue, err := ioutil.ReadAll(fileHandle)
+	if err != nil {
+		fmt.Println("Error reading actor file")
+		return Actor{}, err
+	}
+	jsonData := make(map[string]interface{})
+	json.Unmarshal(byteValue, &jsonData)
+
+	pubActor, federating, common := newPubActor()
+	nuIri, err := url.Parse(jsonData["iri"].(string))
+	if err != nil {
+		fmt.Println("Something went wrong when parsing the local actor uri into net/url")
+		return Actor{}, err
+	}
+
+
+
+	actor := Actor{
+		pubActor:  pubActor,
+		name:      name,
+		summary:   jsonData["summary"].(string),
+		actorType: jsonData["actorType"].(string),
+		iri:       jsonData["iri"].(string),
+		nuIri:     nuIri,
+		followers: jsonData["followers"].(map[string]struct{}),
+		following: jsonData["followers"].(map[string]struct{}),
+	}
+
+	federating.parent = &actor
+	common.parent = &actor
+
+	return actor, nil
 }
 
 // Follow a remote user by their iri
