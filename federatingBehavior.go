@@ -25,11 +25,19 @@ func newFederatingBehavior(db *database) *federatingBehavior {
 }
 
 func (f *federatingBehavior) PostInboxRequestBodyHook(c context.Context, r *http.Request, activity pub.Activity) (out context.Context, err error) {
-	object := activity.GetActivityStreamsObject()
-	article := object.Begin().GetActivityStreamsArticle()
-	id := article.GetActivityStreamsId()
-	fmt.Println(id)
-	f.parent.Announce(id.GetIRI().String())
+	fmt.Println("postinbox")
+	if activity.GetTypeName() == "Create" {
+		object := activity.GetActivityStreamsObject()
+		article := object.Begin().GetActivityStreamsArticle()
+		id := article.GetActivityStreamsId()
+		fmt.Println(id)
+		f.parent.Announce(id.GetIRI().String())
+	} else {
+		//TODO check we aren't following ourselves
+		actor := activity.GetActivityStreamsActor()
+		newFollower := actor.Begin().GetIRI().String()
+		f.parent.JotFollowerDown(newFollower)
+	}
 	return
 }
 

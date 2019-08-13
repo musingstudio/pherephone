@@ -329,3 +329,9 @@ func (a *Actor) HandleInbox(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+// JotFollowerDown saves the fact that we have been followed to a file
+func (a *Actor) JotFollowerDown(iri string) error{
+	a.followers[iri] = struct{}{}
+	return a.save()
+}
