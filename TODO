@@ -16,20 +16,26 @@
     [ ] Create a file with the actors we have, their following
         and their followers.
         [✔] `MakeActor` should create a file with that actor.
-        [ ] Implement `LoadActor`
-        [ ] All but `main.go` should run LoadActor instead of MakeActor
-        [ ] `actor.Follow` should write the new following to file
-        [ ] When followed, the handler should write the new follower to file
+        [✔] Implement `LoadActor`
+        [✔] All but `main.go` should run LoadActor instead of MakeActor
+            (Actually nobody should run LoadActor except GetActor)
+        [✔] `actor.Follow` should write the new following to file
         [ ] Handle being followed
+        [ ] When followed, the handler should write the new follower to file
 [ ] Handle http signatures
 [ ] Write all the announcements (boosts) to the database to 
     their correct actors
-[ ] Check if we are already following users
+[✔] Check if we are already following users
 [ ] On GetOutbox read the database and present a list of the
     last posts.
 [ ] Refactor, comment and clean up
 [ ] Split to pherephone and activityServe
 [ ] Check local actor names for characters illegal for filenames and ban them
+[ ] Add summary to actors.json
+[ ] Decide what's to be done with actors removed from `actors.json`.
+    [ ] Remove them?
+    [ ] Leave them read-only?
+    [ ] Leave them as is?
 
 [ ] Check if it's worth it to reuse pubActor instead of creating
     a new one every time

@@ -5,5 +5,9 @@
     "yetAnotherList" : [
         "http://writefreely.xps/api/collections/qwazix",
         "http://mixt.qwazix.com/api/collections/qwazix"
+    ],
+    "nuerList" : [
+        "http://writefreely.xps/api/collections/qwazix",
+        "http://mixt.qwazix.com/api/collections/qwazix"
     ]
 }

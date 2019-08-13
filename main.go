@@ -39,8 +39,7 @@ func main() {
         fmt.Printf("Fail to read file: %v", err)
         os.Exit(1)
     }
-
-	// Classic read of values, default section can be represented as empty string
+	// Load base url from configuration file
 	baseURL = cfg.Section("general").Key("baseURL").String()
 
     fmt.Println("Domain Name:", baseURL)
@@ -48,7 +47,7 @@ func main() {
 	var outboxHandler http.HandlerFunc = func(w http.ResponseWriter, r *http.Request) {
 		username := mux.Vars(r)["actor"]
 		// TODO replace this with a LoadActor that loads an actor from the database with this username
-		actor, err := MakeActor(username, "My name is"+username, "Service", baseURL+"/"+username)
+		actor, err := LoadActor(username)
 		if err != nil {
 			fmt.Println("Can't create local actor")
 			return
@@ -64,7 +63,7 @@ func main() {
 		// Populate c with request-specific information
 		username := mux.Vars(r)["actor"]
 		// TODO replace this with a LoadActor that loads an actor from the database with this username
-		actor, err := MakeActor(username, "My name is"+username, "Service", baseURL+"/"+username)
+		actor, err := LoadActor(username)
 		if err != nil {
 			fmt.Println("Can't create local actor")
 			return
@@ -83,7 +82,7 @@ func main() {
 		username := mux.Vars(r)["actor"]
 		// TODO replace this with a LoadActor that loads an actor from the database with this username
 		// error out if this actor does not exist
-		actor, err := MakeActor(username, "My name is"+username, "Service", baseURL+"/"+username)
+		actor, err := LoadActor(username)
 		if err != nil {
 			fmt.Println("Can't create local actor")
 			return
@@ -114,17 +113,15 @@ func main() {
 	json.Unmarshal(byteValue, &whoFollowsWho)
 
 	// fmt.Println(string(byteValue))
-	
+	// create all local actors if they don't exist yet
 	for follower, followees := range whoFollowsWho {
-		// Now follow each one of these users
-		// I want to focus on handling the incoming messages before
-		// dealing with databases so I will just comment this out for now
 		fmt.Println("Local Actor: "+ follower)
-		followerActor, err := MakeActor(follower, "emptySummary", "Service", baseURL+"/"+follower)
+		followerActor, err := GetActor(follower, "emptySummary", "Service", baseURL+"/"+follower)
 		if err != nil {
 			fmt.Println("error creating local follower")
 			return
 		}
+		// Now follow each one of it's users
 		fmt.Println("Users to relay:")
 		for _, followee := range followees {
 			fmt.Println(followee)

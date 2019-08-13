@@ -20,7 +20,7 @@ type Actor struct {
 	name, summary, actorType, iri string
 	pubActor                      pub.FederatingActor
 	nuIri                         *url.URL
-	followers, following          map[string]struct{}
+	followers, following          map[string]interface{}
 }
 
 // ActorToSave is a stripped down actor representation
@@ -29,7 +29,7 @@ type Actor struct {
 // see https://stackoverflow.com/questions/26327391/json-marshalstruct-returns
 type ActorToSave struct {
 	Name, Summary, ActorType, IRI	string
-	Followers, Following			map[string]struct{}
+	Followers, Following			map[string]interface{}
 }
 
 func newPubActor() (pub.FederatingActor, *commonBehavior, *federatingBehavior){
@@ -77,8 +77,8 @@ func newPubActor() (pub.FederatingActor, *commonBehavior, *federatingBehavior){
 // on behalf of
 func MakeActor(name, summary, actorType, iri string) (Actor, error) {
 	pubActor, common, federating := newPubActor()
-	followers := make(map[string]struct{})
-	following := make(map[string]struct{})
+	followers := make(map[string]interface{})
+	following := make(map[string]interface{})
 	nuIri, err := url.Parse(iri)
 	if err != nil {
 		fmt.Println("Something went wrong when parsing the local actor uri into net/url")
@@ -138,10 +138,26 @@ func (a *Actor) save() error {
 	return nil
 }
 
+// GetActor attempts to LoadActor and if it doesn't exists
+// creates one
+func GetActor(name, summary, actorType, iri string) (Actor, error){
+	actor, err := LoadActor(name)
+
+	if err != nil{
+		fmt.Println("Actor doesn't exist, creating...")
+		actor, err = MakeActor(name, summary, actorType, iri)
+		if err != nil{
+			fmt.Println("Can't create actor!")
+			return Actor{}, err
+		}
+	}
+	return actor, nil
+}
+
 // LoadActor searches the filesystem and creates an Actor
 // from the data in name.json
 func LoadActor(name string) (Actor, error) {
-	jsonFile := "actors/"+name
+	jsonFile := "actors/"+name+".json"
 	fileHandle, err := os.Open(jsonFile)
 	if os.IsNotExist(err){
 		fmt.Println("We don't have this kind of actor stored")
@@ -156,7 +172,7 @@ func LoadActor(name string) (Actor, error) {
 	json.Unmarshal(byteValue, &jsonData)
 
 	pubActor, federating, common := newPubActor()
-	nuIri, err := url.Parse(jsonData["iri"].(string))
+	nuIri, err := url.Parse(jsonData["IRI"].(string))
 	if err != nil {
 		fmt.Println("Something went wrong when parsing the local actor uri into net/url")
 		return Actor{}, err
@@ -167,12 +183,12 @@ func LoadActor(name string) (Actor, error) {
 	actor := Actor{
 		pubActor:  pubActor,
 		name:      name,
-		summary:   jsonData["summary"].(string),
-		actorType: jsonData["actorType"].(string),
-		iri:       jsonData["iri"].(string),
+		summary:   jsonData["Summary"].(string),
+		actorType: jsonData["ActorType"].(string),
+		iri:       jsonData["IRI"].(string),
 		nuIri:     nuIri,
-		followers: jsonData["followers"].(map[string]struct{}),
-		following: jsonData["followers"].(map[string]struct{}),
+		followers: jsonData["Followers"].(map[string]interface{}),
+		following: jsonData["Following"].(map[string]interface{}),
 	}
 
 	federating.parent = &actor
