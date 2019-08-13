@@ -28,20 +28,20 @@ type Actor struct {
 // able to marshal it.
 // see https://stackoverflow.com/questions/26327391/json-marshalstruct-returns
 type ActorToSave struct {
-	Name, Summary, ActorType, IRI	string
-	Followers, Following			map[string]interface{}
+	Name, Summary, ActorType, IRI string
+	Followers, Following          map[string]interface{}
 }
 
-func newPubActor() (pub.FederatingActor, *commonBehavior, *federatingBehavior){
+func newPubActor() (pub.FederatingActor, *commonBehavior, *federatingBehavior) {
 	var clock *clock
-    var err error
-    var db *database
+	var err error
+	var db *database
 
 	clock, _ = newClock("Europe/Athens")
 	if err != nil {
 		fmt.Println("error creating clock")
 	}
-	
+
 	common := newCommonBehavior(db)
 	federating := newFederatingBehavior(db)
 	pubActor := pub.NewFederatingActor(common, federating, db, clock)
@@ -64,9 +64,9 @@ func newPubActor() (pub.FederatingActor, *commonBehavior, *federatingBehavior){
 // 	var common *commonBehavior
 // 	var federating *federatingBehavior
 // 	a.pubActor, common, federating = newPubActor()
-// 	// assign our actor pointer to be the parent of 
+// 	// assign our actor pointer to be the parent of
 // 	// these two behaviors so that afterwards in e.g.
-// 	// GetInbox we can know which actor we are talking 
+// 	// GetInbox we can know which actor we are talking
 // 	// about
 // 	federating.parent = a
 // 	common.parent = a
@@ -140,13 +140,13 @@ func (a *Actor) save() error {
 
 // GetActor attempts to LoadActor and if it doesn't exists
 // creates one
-func GetActor(name, summary, actorType, iri string) (Actor, error){
+func GetActor(name, summary, actorType, iri string) (Actor, error) {
 	actor, err := LoadActor(name)
 
-	if err != nil{
+	if err != nil {
 		fmt.Println("Actor doesn't exist, creating...")
 		actor, err = MakeActor(name, summary, actorType, iri)
-		if err != nil{
+		if err != nil {
 			fmt.Println("Can't create actor!")
 			return Actor{}, err
 		}
@@ -157,9 +157,9 @@ func GetActor(name, summary, actorType, iri string) (Actor, error){
 // LoadActor searches the filesystem and creates an Actor
 // from the data in name.json
 func LoadActor(name string) (Actor, error) {
-	jsonFile := "actors/"+name+".json"
+	jsonFile := "actors/" + name + ".json"
 	fileHandle, err := os.Open(jsonFile)
-	if os.IsNotExist(err){
+	if os.IsNotExist(err) {
 		fmt.Println("We don't have this kind of actor stored")
 		return Actor{}, err
 	}
@@ -177,8 +177,6 @@ func LoadActor(name string) (Actor, error) {
 		fmt.Println("Something went wrong when parsing the local actor uri into net/url")
 		return Actor{}, err
 	}
-
-
 
 	actor := Actor{
 		pubActor:  pubActor,
@@ -230,6 +228,9 @@ func (a *Actor) Follow(user string) error {
 	follow.SetActivityStreamsTo(to)
 	follow.SetActivityStreamsActor(actorProperty)
 
+	// TODO: maybe we need to add and ID property here too
+	// go-fed seems to require it, writefreely doesn't
+
 	// fmt.Println(c)
 	// fmt.Println(iri)
 	// fmt.Println(follow)
@@ -255,12 +256,6 @@ func (a *Actor) Announce(object string) error {
 	}
 	activityStreamsPublic, err := url.Parse("https://www.w3.org/ns/activitystreams#Public")
 
-	// TODO read the followers from the db here (also they are more than one)
-	followers, err := url.Parse("http://writefreely.xps/api/collections/qwazix")
-	if err != nil {
-		fmt.Println("Can't parse follower url")
-		return err
-	}
 	announce := streams.NewActivityStreamsAnnounce()
 	objectProperty := streams.NewActivityStreamsObjectProperty()
 	objectProperty.AppendIRI(announcedIRI)
@@ -269,7 +264,15 @@ func (a *Actor) Announce(object string) error {
 	to := streams.NewActivityStreamsToProperty()
 	to.AppendIRI(activityStreamsPublic)
 	cc := streams.NewActivityStreamsCcProperty()
-	cc.AppendIRI(followers)
+	for follower := range a.followers {
+		followerIRI, err := url.Parse(follower)
+		if err != nil {
+			fmt.Println("This url is mangled: " + follower + ", ignoring")
+		} else {
+			cc.AppendIRI(followerIRI)
+		}
+	}
+
 	announce.SetActivityStreamsActor(actorProperty)
 	announce.SetActivityStreamsObject(objectProperty)
 	announce.SetActivityStreamsCc(cc)
@@ -331,7 +334,7 @@ func (a *Actor) HandleInbox(w http.ResponseWriter, r *http.Request) {
 }
 
 // JotFollowerDown saves the fact that we have been followed to a file
-func (a *Actor) JotFollowerDown(iri string) error{
+func (a *Actor) JotFollowerDown(iri string) error {
 	a.followers[iri] = struct{}{}
 	return a.save()
 }

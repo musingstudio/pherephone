@@ -20,8 +20,10 @@
         [✔] All but `main.go` should run LoadActor instead of MakeActor
             (Actually nobody should run LoadActor except GetActor)
         [✔] `actor.Follow` should write the new following to file
-        [ ] Handle being followed
-        [ ] When followed, the handler should write the new follower to file
+        [✔] Handle being followed
+        [✔] When followed, the handler should write the new follower to file
+        [~] Make sure we send our boosts to all our followers
+            Code is there but it works sometimes (I hate when this happens)
 [ ] Handle http signatures
 [ ] Write all the announcements (boosts) to the database to 
     their correct actors
@@ -32,6 +34,8 @@
 [ ] Split to pherephone and activityServe
 [ ] Check local actor names for characters illegal for filenames and ban them
 [ ] Add summary to actors.json
+[ ] Check if we're boosting only stuff from actors we follow, not whatever comes
+    through in our inbox
 [ ] Decide what's to be done with actors removed from `actors.json`.
     [ ] Remove them?
     [ ] Leave them read-only?
