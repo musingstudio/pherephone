@@ -114,8 +114,8 @@ func (a *Actor) save() error {
 
 	// check if we already have a directory to save actors
 	// and if not, create it
-	if _, err := os.Stat("actors" + slash + a.name); os.IsNotExist(err) {
-		os.MkdirAll("actors"+slash+a.name+slash, 0755)
+	if _, err := os.Stat(storage + slash + "actors" + slash + a.name); os.IsNotExist(err) {
+		os.MkdirAll(storage + slash + "actors" + slash + a.name + slash, 0755)
 	}
 
 	actorToSave := ActorToSave{
@@ -132,9 +132,9 @@ func (a *Actor) save() error {
 		log.Println("error Marshalling actor json")
 		return err
 	}
-	log.Println(actorToSave)
-	log.Println(string(actorJSON))
-	err = ioutil.WriteFile("actors"+slash+a.name+slash+a.name+".json", actorJSON, 0644)
+	// log.Println(actorToSave)
+	// log.Println(string(actorJSON))
+	err = ioutil.WriteFile(storage + slash + "actors"+slash+a.name+slash+a.name+".json", actorJSON, 0644)
 	if err != nil {
 		log.Printf("WriteFileJson ERROR: %+v", err)
 		return err
@@ -161,7 +161,7 @@ func GetActor(name, summary, actorType, iri string) (Actor, error) {
 // LoadActor searches the filesystem and creates an Actor
 // from the data in name.json
 func LoadActor(name string) (Actor, error) {
-	jsonFile := "actors" + slash + name + slash + name + ".json"
+	jsonFile := storage + slash + "actors" + slash + name + slash + name + ".json"
 	fileHandle, err := os.Open(jsonFile)
 	if os.IsNotExist(err) {
 		log.Println("We don't have this kind of actor stored")

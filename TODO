@@ -24,6 +24,7 @@
         [✔] When followed, the handler should write the new follower to file
         [✔] Make sure we send our boosts to all our followers
             Code is there but it works sometimes (I hate when this happens)
+        [ ] Check why I get calls to get with an id that consists only of an actor's name
 [ ] Handle http signatures
 [ ] Write all the announcements (boosts) to the database to 
     their correct actors
@@ -42,7 +43,8 @@
     [ ] Leave them as is?
 [ ] Check if an early failure in announcing posts causes a problem to the following ones
 [ ] Make OS-independent (mosty directory separators)
-[ ] Create outbox.json programmatically
+[✔] Create outbox.json programmatically
+[ ] Make storage configurable (search for "storage" in project)
 
 [ ] Check if it's worth it to reuse pubActor instead of creating
     a new one every time

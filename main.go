@@ -24,6 +24,7 @@ import (
 )
 
 var baseURL = "http://example.com/"
+var storage = "storage"
 
 func main() {
 
@@ -49,6 +50,14 @@ func main() {
 		baseURL += "/"
 	}
 	log.Println("Domain Name:", baseURL)
+
+	// Load storage location (only local filesystem supported for now) from config
+	storage = cfg.Section("general").Key("storage").String()
+
+	// prepare storage
+	if _, err := os.Stat(storage + slash + "foreign"); os.IsNotExist(err) {
+		os.MkdirAll(storage+slash+"foreign", 0755)
+	}
 
 	// This could work too if we don't want to handle multiple actors and stuff
 	// var outboxHandler http.HandlerFunc = actor.HandleOutbox
@@ -98,6 +107,14 @@ func main() {
 		fmt.Fprintf(w, actor.whoAmI())
 	}
 
+	var postHandler http.HandlerFunc = func(w http.ResponseWriter, r *http.Request) {
+		// db := new(database)
+		// c := context.Background()
+		// post, _ := db.Get(c, r.URL)
+		// str, _ := post.Serialize()
+		// fmt.Fprintf(w, str)
+	}
+
 	// Add the handlers to a HTTP server
 	gorilla := mux.NewRouter()
 	gorilla.HandleFunc("/{actor}/outbox", outboxHandler)
@@ -105,6 +122,7 @@ func main() {
 	gorilla.HandleFunc("/{actor}/inbox/", inboxHandler)
 	gorilla.HandleFunc("/{actor}", actorHandler)
 	gorilla.HandleFunc("/{actor}/", actorHandler)
+	gorilla.HandleFunc("/post/", postHandler)
 	http.Handle("/", gorilla)
 
 	// Here we begin the actual pherephone functionality
@@ -128,7 +146,7 @@ func main() {
 	for follower, followees := range whoFollowsWho {
 		log.Println()
 		log.Println("Local Actor: " + follower)
-		followerActor, err := GetActor(follower, "emptySummary", "Service", baseURL+"/"+follower)
+		followerActor, err := GetActor(follower, "emptySummary", "Service", baseURL+follower)
 		if err != nil {
 			log.Println("error creating local follower")
 			return
