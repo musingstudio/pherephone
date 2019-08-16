@@ -13,7 +13,7 @@
 [✔] Handle the /actor endpoint
 [✔] Create configuration file
 [ ] Implement database backend
-    [ ] Create a file with the actors we have, their following
+    [✔] Create a file with the actors we have, their following
         and their followers.
         [✔] `MakeActor` should create a file with that actor.
         [✔] Implement `LoadActor`
@@ -22,7 +22,7 @@
         [✔] `actor.Follow` should write the new following to file
         [✔] Handle being followed
         [✔] When followed, the handler should write the new follower to file
-        [~] Make sure we send our boosts to all our followers
+        [✔] Make sure we send our boosts to all our followers
             Code is there but it works sometimes (I hate when this happens)
 [ ] Handle http signatures
 [ ] Write all the announcements (boosts) to the database to 
@@ -40,6 +40,9 @@
     [ ] Remove them?
     [ ] Leave them read-only?
     [ ] Leave them as is?
+[ ] Check if an early failure in announcing posts causes a problem to the following ones
+[ ] Make OS-independent (mosty directory separators)
+[ ] Create outbox.json programmatically
 
 [ ] Check if it's worth it to reuse pubActor instead of creating
     a new one every time

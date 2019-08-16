@@ -2,7 +2,7 @@ package main
 
 
 import (
-	"fmt"
+	"log"
 
 	"github.com/go-fed/activity/pub"
 	"github.com/go-fed/httpsig"
@@ -47,8 +47,8 @@ func (ra RemoteActor) getLatestPosts(number int) map[string]interface{} {
 func get(iri string) map[string]interface{} {
 	clock, err := newClock("Europe/Athens")
 	if err != nil {
-		fmt.Println("something is wrong with the clock")
-		fmt.Println(err)
+		log.Println("something is wrong with the clock")
+		log.Println(err)
 	}
 
 	client := &http.Client{}
@@ -56,15 +56,15 @@ func get(iri string) map[string]interface{} {
 	getSigner, _, err := httpsig.NewSigner( []httpsig.Algorithm{httpsig.RSA_SHA256}, []string{"(request-target)", "date", "host", "digest"}, httpsig.Signature )
 	postSigner, _, err := httpsig.NewSigner( []httpsig.Algorithm{httpsig.RSA_SHA256}, []string{"(request-target)", "date", "host", "digest"}, httpsig.Signature )
 	if err != nil{
-		fmt.Println("something is wrong with the httpsigner function call")
-		fmt.Println(err)
+		log.Println("something is wrong with the httpsigner function call")
+		log.Println(err)
 	}
 	pubKeyId := ""
 	rng := rand.Reader
 	privKey, err := rsa.GenerateKey(rng, 2048)
 	if err != nil{
-		fmt.Println("something is wrong with the httpsigner function call")
-		fmt.Println(err)
+		log.Println("something is wrong with the httpsigner function call")
+		log.Println(err)
 	}
 
 	transport := pub.NewHttpSigTransport(client, "pherephone", clock, getSigner, postSigner, pubKeyId, privKey)
@@ -73,17 +73,17 @@ func get(iri string) map[string]interface{} {
 	actorURL, err := url.Parse(iri)
 	res, err := transport.Dereference(c, actorURL)
 	if err!=nil{
-		fmt.Println("something is wrong with the request")
-		fmt.Println(err)
+		log.Println("something is wrong with the request")
+		log.Println(err)
 	}
 
-	// fmt.Println(string(res))
+	// log.Println(string(res))
 	var e interface{}
 	err = json.Unmarshal(res, &e)
 
 	if err != nil {
-		fmt.Println("something went wrong when unmarshalling the json")
-		fmt.Println(err)
+		log.Println("something went wrong when unmarshalling the json")
+		log.Println(err)
 	}
 	info := e.(map[string]interface{})
 

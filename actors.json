@@ -6,6 +6,10 @@
         "http://writefreely.xps/api/collections/qwazix",
         "http://mixt.qwazix.com/api/collections/qwazix"
     ],
+    "nuList" : [
+        "http://mastodon.social/users/qwazix",
+        "http://cybre.space/users/qwazix"
+    ],
     "nuerList" : [
         "http://writefreely.xps/api/collections/qwazix",
         "http://mixt.qwazix.com/api/collections/qwazix"

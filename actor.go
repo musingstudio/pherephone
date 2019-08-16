@@ -3,8 +3,8 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -14,13 +14,16 @@ import (
 	"github.com/go-fed/activity/pub"
 )
 
+var slash = string(os.PathSeparator)
+
 // Actor represents a local actor we can act on
 // behalf of.
 type Actor struct {
-	name, summary, actorType, iri string
-	pubActor                      pub.FederatingActor
-	nuIri                         *url.URL
-	followers, following          map[string]interface{}
+	name, summary, actorType, iri	string
+	pubActor						pub.FederatingActor
+	nuIri							*url.URL
+	followers, following			map[string]interface{}
+	posts							map[int]map[string]string
 }
 
 // ActorToSave is a stripped down actor representation
@@ -32,14 +35,14 @@ type ActorToSave struct {
 	Followers, Following          map[string]interface{}
 }
 
-func newPubActor() (pub.FederatingActor, *commonBehavior, *federatingBehavior) {
+func newPubActor() (pub.FederatingActor, *commonBehavior, *federatingBehavior, *database) {
 	var clock *clock
 	var err error
-	var db *database
+	db := new(database)
 
 	clock, _ = newClock("Europe/Athens")
 	if err != nil {
-		fmt.Println("error creating clock")
+		log.Println("error creating clock")
 	}
 
 	common := newCommonBehavior(db)
@@ -48,7 +51,7 @@ func newPubActor() (pub.FederatingActor, *commonBehavior, *federatingBehavior) {
 
 	//kludgey, but we need common and federating to set their parents
 	//can't think of a better architecture for now
-	return pubActor, common, federating
+	return pubActor, common, federating, db
 }
 
 // // set up and return a pubActor object for our actor
@@ -76,12 +79,12 @@ func newPubActor() (pub.FederatingActor, *commonBehavior, *federatingBehavior) {
 // MakeActor returns a new local actor we can act
 // on behalf of
 func MakeActor(name, summary, actorType, iri string) (Actor, error) {
-	pubActor, common, federating := newPubActor()
+	pubActor, common, federating, db := newPubActor()
 	followers := make(map[string]interface{})
 	following := make(map[string]interface{})
 	nuIri, err := url.Parse(iri)
 	if err != nil {
-		fmt.Println("Something went wrong when parsing the local actor uri into net/url")
+		log.Println("Something went wrong when parsing the local actor uri into net/url")
 		return Actor{}, err
 	}
 	actor := Actor{
@@ -102,6 +105,7 @@ func MakeActor(name, summary, actorType, iri string) (Actor, error) {
 
 	federating.parent = &actor
 	common.parent = &actor
+	db.grandparent = &actor
 	return actor, nil
 }
 
@@ -110,8 +114,8 @@ func (a *Actor) save() error {
 
 	// check if we already have a directory to save actors
 	// and if not, create it
-	if _, err := os.Stat("actors"); os.IsNotExist(err) {
-		os.Mkdir("actors", 755)
+	if _, err := os.Stat("actors" + slash + a.name); os.IsNotExist(err) {
+		os.MkdirAll("actors"+slash+a.name+slash, 0755)
 	}
 
 	actorToSave := ActorToSave{
@@ -125,29 +129,29 @@ func (a *Actor) save() error {
 
 	actorJSON, err := json.MarshalIndent(actorToSave, "", "\t")
 	if err != nil {
-		fmt.Println("error Marshalling actor json")
+		log.Println("error Marshalling actor json")
 		return err
 	}
-	fmt.Println(actorToSave)
-	fmt.Println(string(actorJSON))
-	err = ioutil.WriteFile("actors/"+a.name+".json", actorJSON, 0644)
+	log.Println(actorToSave)
+	log.Println(string(actorJSON))
+	err = ioutil.WriteFile("actors"+slash+a.name+slash+a.name+".json", actorJSON, 0644)
 	if err != nil {
-		fmt.Printf("WriteFileJson ERROR: %+v", err)
+		log.Printf("WriteFileJson ERROR: %+v", err)
 		return err
 	}
 	return nil
 }
 
-// GetActor attempts to LoadActor and if it doesn't exists
+// GetActor attempts to LoadActor and if it doesn't exist
 // creates one
 func GetActor(name, summary, actorType, iri string) (Actor, error) {
 	actor, err := LoadActor(name)
 
 	if err != nil {
-		fmt.Println("Actor doesn't exist, creating...")
+		log.Println("Actor doesn't exist, creating...")
 		actor, err = MakeActor(name, summary, actorType, iri)
 		if err != nil {
-			fmt.Println("Can't create actor!")
+			log.Println("Can't create actor!")
 			return Actor{}, err
 		}
 	}
@@ -157,24 +161,24 @@ func GetActor(name, summary, actorType, iri string) (Actor, error) {
 // LoadActor searches the filesystem and creates an Actor
 // from the data in name.json
 func LoadActor(name string) (Actor, error) {
-	jsonFile := "actors/" + name + ".json"
+	jsonFile := "actors" + slash + name + slash + name + ".json"
 	fileHandle, err := os.Open(jsonFile)
 	if os.IsNotExist(err) {
-		fmt.Println("We don't have this kind of actor stored")
+		log.Println("We don't have this kind of actor stored")
 		return Actor{}, err
 	}
 	byteValue, err := ioutil.ReadAll(fileHandle)
 	if err != nil {
-		fmt.Println("Error reading actor file")
+		log.Println("Error reading actor file")
 		return Actor{}, err
 	}
 	jsonData := make(map[string]interface{})
 	json.Unmarshal(byteValue, &jsonData)
 
-	pubActor, federating, common := newPubActor()
+	pubActor, federating, common, db := newPubActor()
 	nuIri, err := url.Parse(jsonData["IRI"].(string))
 	if err != nil {
-		fmt.Println("Something went wrong when parsing the local actor uri into net/url")
+		log.Println("Something went wrong when parsing the local actor uri into net/url")
 		return Actor{}, err
 	}
 
@@ -191,6 +195,7 @@ func LoadActor(name string) (Actor, error) {
 
 	federating.parent = &actor
 	common.parent = &actor
+	db.grandparent = &actor
 
 	return actor, nil
 }
@@ -207,9 +212,9 @@ func (a *Actor) Follow(user string) error {
 	iri, err := url.Parse(user)
 	// iri, err := url.Parse("https://print3d.social/users/qwazix/outbox")
 	if err != nil {
-		fmt.Println("something is wrong when parsing the remote" +
+		log.Println("something is wrong when parsing the remote" +
 			"actors iri into a url")
-		fmt.Println(err)
+		log.Println(err)
 		return err
 	}
 	to.AppendIRI(iri)
@@ -218,9 +223,9 @@ func (a *Actor) Follow(user string) error {
 	// add "from" actor
 	iri, err = url.Parse(a.iri)
 	if err != nil {
-		fmt.Println("something is wrong when parsing the local" +
+		log.Println("something is wrong when parsing the local" +
 			"actors iri into a url")
-		fmt.Println(err)
+		log.Println(err)
 		return err
 	}
 	actorProperty.AppendIRI(iri)
@@ -231,9 +236,9 @@ func (a *Actor) Follow(user string) error {
 	// TODO: maybe we need to add and ID property here too
 	// go-fed seems to require it, writefreely doesn't
 
-	// fmt.Println(c)
-	// fmt.Println(iri)
-	// fmt.Println(follow)
+	// log.Println(c)
+	// log.Println(iri)
+	// log.Println(follow)
 
 	if _, ok := a.following[user]; !ok {
 		a.following[user] = struct{}{}
@@ -247,11 +252,12 @@ func (a *Actor) Follow(user string) error {
 // Announce sends an announcement (boost) to the object
 // defined by the `object` url
 func (a *Actor) Announce(object string) error {
+	log.Println(1, "About to announce post with iri "+object)
 	c := context.Background()
 
 	announcedIRI, err := url.Parse(object)
 	if err != nil {
-		fmt.Println("Can't parse object url")
+		log.Println("Can't parse object url")
 		return err
 	}
 	activityStreamsPublic, err := url.Parse("https://www.w3.org/ns/activitystreams#Public")
@@ -267,7 +273,7 @@ func (a *Actor) Announce(object string) error {
 	for follower := range a.followers {
 		followerIRI, err := url.Parse(follower)
 		if err != nil {
-			fmt.Println("This url is mangled: " + follower + ", ignoring")
+			log.Println("This url is mangled: " + follower + ", ignoring")
 		} else {
 			cc.AppendIRI(followerIRI)
 		}
@@ -310,7 +316,7 @@ func (a *Actor) HandleOutbox(w http.ResponseWriter, r *http.Request) {
 		// Write to w
 		return
 	} else if handled {
-		fmt.Println("gethandled")
+		log.Println("gethandled")
 		return
 	}
 }
@@ -320,7 +326,7 @@ func (a *Actor) HandleOutbox(w http.ResponseWriter, r *http.Request) {
 func (a *Actor) HandleInbox(w http.ResponseWriter, r *http.Request) {
 	c := context.Background()
 	if handled, err := a.pubActor.PostInbox(c, w, r); err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		// Write to w
 		return
 	} else if handled {
@@ -338,3 +344,5 @@ func (a *Actor) JotFollowerDown(iri string) error {
 	a.followers[iri] = struct{}{}
 	return a.save()
 }
+
+// func (a *Actor) savePost()

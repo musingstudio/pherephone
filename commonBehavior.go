@@ -13,7 +13,7 @@ import (
 	"crypto/rsa"
 
 
-	"fmt"
+	"log"
 )
 
 var _ pub.CommonBehavior = &commonBehavior{}
@@ -44,8 +44,8 @@ func (a *commonBehavior) GetOutbox(c context.Context, r *http.Request) (ocp voca
 	// var iri *url.URL
 	iri, err := url.Parse("http://floorb.qwazix.com/outbox")
 	if err != nil{
-		fmt.Println("something went wrong with the parsing of the outbox url")
-		fmt.Println(err)
+		log.Println("something went wrong with the parsing of the outbox url")
+		log.Println(err)
 		return
 	}
 	ocp, err = a.db.GetOutbox(c, iri)
@@ -56,8 +56,8 @@ func (a *commonBehavior) GetOutbox(c context.Context, r *http.Request) (ocp voca
 func (a *commonBehavior) NewTransport(c context.Context, actorBoxIRI *url.URL, gofedAgent string) (t pub.Transport, err error) {
 	clock, err := newClock("Europe/Athens")
 	if err != nil {
-		fmt.Println("something is wrong with the clock")
-		fmt.Println(err)
+		log.Println("something is wrong with the clock")
+		log.Println(err)
 	}
 
 	client := &http.Client{}
@@ -65,15 +65,15 @@ func (a *commonBehavior) NewTransport(c context.Context, actorBoxIRI *url.URL, g
 	getSigner, _, err := httpsig.NewSigner( []httpsig.Algorithm{httpsig.RSA_SHA256}, []string{"(request-target)", "date", "host", "digest"}, httpsig.Signature )
 	postSigner, _, err := httpsig.NewSigner( []httpsig.Algorithm{httpsig.RSA_SHA256}, []string{"(request-target)", "date", "host", "digest"}, httpsig.Signature )
 	if err != nil{
-		fmt.Println("something is wrong with the httpsigner function call")
-		fmt.Println(err)
+		log.Println("something is wrong with the httpsigner function call")
+		log.Println(err)
 	}
 	pubKeyID := ""
 	rng := rand.Reader
 	privKey, err := rsa.GenerateKey(rng, 2048)
 	if err != nil{
-		fmt.Println("something is wrong with the httpsigner function call")
-		fmt.Println(err)
+		log.Println("something is wrong with the httpsigner function call")
+		log.Println(err)
 	}
 
 	t = pub.NewHttpSigTransport(client, "pherephone", clock, getSigner, postSigner, pubKeyID, privKey)

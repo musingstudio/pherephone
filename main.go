@@ -23,7 +23,7 @@ import (
 	// "github.com/davecgh/go-spew/spew"
 )
 
-var baseURL = "http://example.com"
+var baseURL = "http://example.com/"
 
 func main() {
 
@@ -31,7 +31,9 @@ func main() {
 
 	// This is here for debugging purposes. I want to be able to easily spot in the terminal
 	// when a single execution starts
-	fmt.Println("=========================================================================")
+	log.Println("=========================================================================")
+	log.SetFlags(log.Llongfile)
+	// log.SetFlags(log.LstdFlags | log.Lshortfile)
 
 	// read configuration file (config.ini)
 	cfg, err := ini.Load("config.ini")
@@ -42,7 +44,11 @@ func main() {
 	// config.ini for now only contains the baseURL
 	// Load base url from configuration file
 	baseURL = cfg.Section("general").Key("baseURL").String()
-	fmt.Println("Domain Name:", baseURL)
+	// check if it ends with a / and append one if not
+	if baseURL[len(baseURL)-1:] != "/" {
+		baseURL += "/"
+	}
+	log.Println("Domain Name:", baseURL)
 
 	// This could work too if we don't want to handle multiple actors and stuff
 	// var outboxHandler http.HandlerFunc = actor.HandleOutbox
@@ -51,7 +57,7 @@ func main() {
 		username := mux.Vars(r)["actor"]
 		actor, err := LoadActor(username)
 		if err != nil {
-			fmt.Println("Can't create local actor")
+			log.Println("Can't create local actor")
 			return
 		}
 		if pub.IsActivityPubRequest(r) {
@@ -67,7 +73,7 @@ func main() {
 		// TODO replace this with a LoadActor that loads an actor from the database with this username
 		actor, err := LoadActor(username)
 		if err != nil {
-			fmt.Println("Can't create local actor")
+			log.Println("Can't create local actor")
 			return
 		}
 		if pub.IsActivityPubRequest(r) {
@@ -79,14 +85,14 @@ func main() {
 	}
 
 	var actorHandler http.HandlerFunc = func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("Remote server just fetched our /actor endpoint")
+		log.Println("Remote server just fetched our /actor endpoint")
 
 		username := mux.Vars(r)["actor"]
 		// TODO replace this with a LoadActor that loads an actor from the database with this username
 		// error out if this actor does not exist
 		actor, err := LoadActor(username)
 		if err != nil {
-			fmt.Println("Can't create local actor")
+			log.Println("Can't create local actor")
 			return
 		}
 		fmt.Fprintf(w, actor.whoAmI())
@@ -107,8 +113,8 @@ func main() {
 	// of remote actors any of them relays (boosts, announces)
 	jsonFile, err := os.Open("actors.json")
 	if err != nil {
-		fmt.Println("something is wrong with the json file containing the actors")
-		fmt.Println(err)
+		log.Println("something is wrong with the json file containing the actors")
+		log.Println(err)
 	}
 
 	// Unmarshall it into a map of string arrays
@@ -117,20 +123,20 @@ func main() {
 	byteValue, _ := ioutil.ReadAll(jsonFile)
 	json.Unmarshal(byteValue, &whoFollowsWho)
 
-	// fmt.Println(string(byteValue))
+	// log.Println(string(byteValue))
 	// create all local actors if they don't exist yet
 	for follower, followees := range whoFollowsWho {
-		fmt.Println()
-		fmt.Println("Local Actor: " + follower)
+		log.Println()
+		log.Println("Local Actor: " + follower)
 		followerActor, err := GetActor(follower, "emptySummary", "Service", baseURL+"/"+follower)
 		if err != nil {
-			fmt.Println("error creating local follower")
+			log.Println("error creating local follower")
 			return
 		}
 		// Now follow each one of it's users
-		fmt.Println("Users to relay:")
+		log.Println("Users to relay:")
 		for _, followee := range followees {
-			fmt.Println(followee)
+			log.Println(followee)
 			followerActor.Follow(followee)
 		}
 	}
