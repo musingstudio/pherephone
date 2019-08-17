@@ -24,7 +24,7 @@
         [✔] When followed, the handler should write the new follower to file
         [✔] Make sure we send our boosts to all our followers
             Code is there but it works sometimes (I hate when this happens)
-        [ ] Check why I get calls to get with an id that consists only of an actor's name
+        [✔] Check why I get calls to get with an id that consists only of an actor's name
 [ ] Handle http signatures
 [ ] Write all the announcements (boosts) to the database to 
     their correct actors

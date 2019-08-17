@@ -139,6 +139,27 @@ func (a *Actor) save() error {
 		log.Printf("WriteFileJson ERROR: %+v", err)
 		return err
 	}
+
+	asActor := streams.NewActivityStreamsService()
+	asSummary := streams.NewActivityStreamsSummaryProperty()
+	asSummary.AppendXMLSchemaString(a.summary)
+	asActor.SetActivityStreamsSummary(asSummary)
+
+	// save pubActor to a separate file
+	serialized, _ := asActor.Serialize()
+	actorJSON, err = json.MarshalIndent(serialized, "", "\t")
+	if err != nil {
+		log.Println("error Marshalling actor json")
+		return err
+	}
+	// log.Println(actorToSave)
+	// log.Println(string(actorJSON))
+	err = ioutil.WriteFile(storage + slash + "actors"+slash+a.name+slash+"actor.json", actorJSON, 0644)
+	if err != nil {
+		log.Printf("WriteFileJson ERROR: %+v", err)
+		return err
+	}
+
 	return nil
 }
 

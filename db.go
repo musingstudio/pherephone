@@ -67,14 +67,14 @@ func (d *database) Owns(c context.Context, id *url.URL) (owns bool, err error) {
 
 func (d *database) ActorForOutbox(c context.Context, outboxIRI *url.URL) (actorIRI *url.URL, err error) {
 	stringURL := outboxIRI.String()
-	actor := strings.Replace(strings.Replace(stringURL, "/outbox", "", -1), baseURL, "", -1)
+	actor := strings.Replace(stringURL, "/outbox", "", -1)
 	actorIRI, _ = url.Parse(actor)
 	return
 }
 
 func (d *database) ActorForInbox(c context.Context, inboxIRI *url.URL) (actorIRI *url.URL, err error) {
 	stringURL := inboxIRI.String()
-	actor := strings.Replace(strings.Replace(stringURL, "/inbox", "", -1), baseURL, "", -1)
+	actor := strings.Replace(stringURL, "/inbox", "", -1)
 	actorIRI, _ = url.Parse(actor)
 	return
 }
@@ -99,7 +99,6 @@ func (d *database) Exists(c context.Context, id *url.URL) (exists bool, err erro
 		// this should look like storage/foreign/http:😆😆some.domain😆some😆path.json
 	}
 	_, err = os.Stat(jsonFile)
-
 	return err == nil, err
 }
 
