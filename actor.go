@@ -140,20 +140,10 @@ func (a *Actor) save() error {
 		return err
 	}
 
-	asActor := streams.NewActivityStreamsService()
-	asSummary := streams.NewActivityStreamsSummaryProperty()
-	asSummary.AppendXMLSchemaString(a.summary)
-	asActor.SetActivityStreamsSummary(asSummary)
+	
 
 	// save pubActor to a separate file
-	serialized, _ := asActor.Serialize()
-	actorJSON, err = json.MarshalIndent(serialized, "", "\t")
-	if err != nil {
-		log.Println("error Marshalling actor json")
-		return err
-	}
-	// log.Println(actorToSave)
-	// log.Println(string(actorJSON))
+	actorJSON = []byte(a.whoAmI())
 	err = ioutil.WriteFile(storage + slash + "actors"+slash+a.name+slash+"actor.json", actorJSON, 0644)
 	if err != nil {
 		log.Printf("WriteFileJson ERROR: %+v", err)
@@ -313,15 +303,15 @@ func (a *Actor) Announce(object string) error {
 func (a *Actor) whoAmI() string {
 	return `{"@context":	"https://www.w3.org/ns/activitystreams",
 	"type": "` + a.actorType + `",
-	"id": "http://floorb.qwazix.com/` + a.name + `/",
-	"name": "Alyssa P. Hacker",
+	"id": "`+ baseURL + a.name + `/",
+	"name": "`+ a.name +`",
 	"preferredUsername": "` + a.name + `",
 	"summary": "` + a.summary + `",
-	"inbox": "http://floorb.qwazix.com/` + a.name + `/inbox/",
-	"outbox": "http://floorb.qwazix.com/` + a.name + `/outbox/",
-	"followers": "http://floorb.qwazix.com/` + a.name + `/followers/",
-	"following": "http://floorb.qwazix.com/` + a.name + `/following/",
-	"liked": "http://floorb.qwazix.com/` + a.name + `/liked/"}`
+	"inbox": "`+ baseURL + a.name + `/inbox/",
+	"outbox": "`+ baseURL + a.name + `/outbox/",
+	"followers": "`+ baseURL + a.name + `/followers/",
+	"following": "`+ baseURL + a.name + `/following/",
+	"liked": "`+ baseURL + a.name + `/liked/"}`
 }
 
 // HandleOutbox handles the outbox of our actor. It actually just
@@ -342,7 +332,7 @@ func (a *Actor) HandleOutbox(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// HandleInbox handles the outbox of our actor. It actually just
+// HandleInbox handles the inbox of our actor. It actually just
 // delegates to go-fed without doing anything in particular.
 func (a *Actor) HandleInbox(w http.ResponseWriter, r *http.Request) {
 	c := context.Background()

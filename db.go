@@ -99,7 +99,7 @@ func (d *database) Exists(c context.Context, id *url.URL) (exists bool, err erro
 		// this should look like storage/foreign/http:😆😆some.domain😆some😆path.json
 	}
 	_, err = os.Stat(jsonFile)
-	return err == nil, err
+	return err == nil, nil
 }
 
 func (d *database) parseIRI(id *url.URL) (actor string, hash string) {
@@ -143,7 +143,7 @@ func (d *database) Get(c context.Context, id *url.URL) (value vocab.Type, err er
 		log.Println("probably the item doesn't exist in our database")
 		return
 	}
-	spew.Dump(jsonMap)
+	// spew.Dump(jsonMap)
 	value, err = streams.ToType(c, jsonMap)
 	if err != nil {
 		log.Println("something is wrong with the conversion of JSON to vocab.Type")
