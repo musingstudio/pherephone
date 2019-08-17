@@ -12,7 +12,7 @@
 [✔] Fix the json unmarshalling code to read multiple actors
 [✔] Handle the /actor endpoint
 [✔] Create configuration file
-[ ] Implement database backend
+[✔] Implement database backend
     [✔] Create a file with the actors we have, their following
         and their followers.
         [✔] `MakeActor` should create a file with that actor.
@@ -26,10 +26,10 @@
             Code is there but it works sometimes (I hate when this happens)
         [✔] Check why I get calls to get with an id that consists only of an actor's name
 [ ] Handle http signatures
-[ ] Write all the announcements (boosts) to the database to 
+[✔] Write all the announcements (boosts) to the database to 
     their correct actors
 [✔] Check if we are already following users
-[ ] On GetOutbox read the database and present a list of the
+[✔] On GetOutbox read the database and present a list of the
     last posts.
 [ ] Refactor, comment and clean up
 [ ] Split to pherephone and activityServe
@@ -42,9 +42,9 @@
     [ ] Leave them read-only?
     [ ] Leave them as is?
 [ ] Check if an early failure in announcing posts causes a problem to the following ones
-[ ] Make OS-independent (mosty directory separators)
+[✔] Make OS-independent (mosty directory separators)
 [✔] Create outbox.json programmatically
-[ ] Make storage configurable (search for "storage" in project)
+[✔] Make storage configurable (search for "storage" in project)
 
 [ ] Check if it's worth it to reuse pubActor instead of creating
     a new one every time
