@@ -87,11 +87,20 @@ func (d *database) OutboxForInbox(c context.Context, inboxIRI *url.URL) (outboxI
 }
 
 func (d *database) Exists(c context.Context, id *url.URL) (exists bool, err error) {
-	// check if ours
-	// read from actor
-	// else
-	// read from foreign
-	return
+	var jsonFile string
+	if owns, _ := d.Owns(c, id); owns {
+		actor, hash := d.parseIRI(id)
+		jsonFile = storage + slash + "actors" + slash + actor + slash + hash + ".json"
+		// this should look like storage/actors/qwazix/nvjfdjelkjdjk.json
+		// or storage/actors/qwazix/qwazix.json
+	} else {
+		path := makeURLsaveable(strings.Replace(id.String(), baseURL, "", 1))
+		jsonFile = storage + slash + "foreign" + slash + path + ".json"
+		// this should look like storage/foreign/http:😆😆some.domain😆some😆path.json
+	}
+	_, err = os.Stat(jsonFile)
+
+	return err == nil, err
 }
 
 func (d *database) parseIRI(id *url.URL) (actor string, hash string) {
