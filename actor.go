@@ -314,6 +314,15 @@ func (a *Actor) whoAmI() string {
 	"liked": "`+ baseURL + a.name + `/liked/"}`
 }
 
+func (a *Actor) getPost(hash string) (post string, err error) {
+	filename := storage + slash + "actors" + slash + a.name + slash + hash + ".json"
+	post, err = readStringFromFile(filename)
+	if err != nil {
+		log.Println("this post doesn't exist")
+	}
+	return 
+}
+
 // HandleOutbox handles the outbox of our actor. It actually just
 // delegates to go-fed without doing anything in particular.
 func (a *Actor) HandleOutbox(w http.ResponseWriter, r *http.Request) {

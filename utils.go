@@ -18,6 +18,20 @@ func PrettyPrint(themap map[string]interface{}){
 	log.Print(string(b))
 }
 
+func readStringFromFile(filename string) (string, error) {
+	fileHandle, err := os.Open(filename)
+	if os.IsNotExist(err) {
+		log.Println("file " + filename + " cannot be opened")
+		return "", err
+	}
+	byteValue, err := ioutil.ReadAll(fileHandle)
+	if err != nil {
+		log.Println("Error reading " + filename + " file")
+		return "", err
+	}
+	return string(byteValue), nil
+}
+
 func readJSON(filename string) (map[string]interface{}, error){
 	
 	fileHandle, err := os.Open(filename)

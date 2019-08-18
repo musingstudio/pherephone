@@ -32,7 +32,10 @@ func main() {
 
 	// This is here for debugging purposes. I want to be able to easily spot in the terminal
 	// when a single execution starts
-	log.Println("=========================================================================")
+	log.Println("======================= PHeRePHoNe ==========================")
+
+	// I prefer long file so that I can click it in the terminal and open it
+	// in the editor above
 	log.SetFlags(log.Llongfile)
 	// log.SetFlags(log.LstdFlags | log.Lshortfile)
 
@@ -42,7 +45,6 @@ func main() {
 		fmt.Printf("Fail to read file: %v", err)
 		os.Exit(1)
 	}
-	// config.ini for now only contains the baseURL
 	// Load base url from configuration file
 	baseURL = cfg.Section("general").Key("baseURL").String()
 	// check if it ends with a / and append one if not
@@ -53,13 +55,16 @@ func main() {
 
 	// Load storage location (only local filesystem supported for now) from config
 	storage = cfg.Section("general").Key("storage").String()
+	log.Println("Storage Location:", storage)
+	log.Println()
+	log.Println("Take a look at config.ini if you want to change the above values")
 
 	// prepare storage
 	if _, err := os.Stat(storage + slash + "foreign"); os.IsNotExist(err) {
 		os.MkdirAll(storage+slash+"foreign", 0755)
 	}
 
-	// This could work too if we don't want to handle multiple actors and stuff
+	// This could work too if we don't want to handle multiple actors and stuff:
 	// var outboxHandler http.HandlerFunc = actor.HandleOutbox
 	// might consider moving the whole thing to another file
 	var outboxHandler http.HandlerFunc = func(w http.ResponseWriter, r *http.Request) {
@@ -97,9 +102,8 @@ func main() {
 		log.Println("Remote server just fetched our /actor endpoint")
 
 		username := mux.Vars(r)["actor"]
-		// TODO replace this with a LoadActor that loads an actor from the database with this username
-		// error out if this actor does not exist
 		actor, err := LoadActor(username)
+		// error out if this actor does not exist
 		if err != nil {
 			log.Println("Can't create local actor")
 			return
@@ -108,11 +112,21 @@ func main() {
 	}
 
 	var postHandler http.HandlerFunc = func(w http.ResponseWriter, r *http.Request) {
-		// db := new(database)
-		// c := context.Background()
-		// post, _ := db.Get(c, r.URL)
-		// str, _ := post.Serialize()
-		// fmt.Fprintf(w, str)
+		username := mux.Vars(r)["actor"]
+		hash := mux.Vars(r)["hash"]
+		actor, err := LoadActor(username)
+		// error out if this actor does not exist
+		if err != nil {
+			log.Println("Can't create local actor")
+			return
+		}
+		post, err := actor.getPost(hash)
+		if err != nil {
+			w.WriteHeader(http.StatusNotFound)
+			fmt.Fprintf(w, "404 - post not found")
+			return
+		}
+		fmt.Fprintf(w, post)
 	}
 
 	// Add the handlers to a HTTP server
@@ -122,7 +136,7 @@ func main() {
 	gorilla.HandleFunc("/{actor}/inbox/", inboxHandler)
 	gorilla.HandleFunc("/{actor}", actorHandler)
 	gorilla.HandleFunc("/{actor}/", actorHandler)
-	gorilla.HandleFunc("/post/", postHandler)
+	gorilla.HandleFunc("/{actor}/post/{hash}", postHandler)
 	http.Handle("/", gorilla)
 
 	// Here we begin the actual pherephone functionality
