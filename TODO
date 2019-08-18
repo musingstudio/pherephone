@@ -25,26 +25,28 @@
         [✔] Make sure we send our boosts to all our followers
             Code is there but it works sometimes (I hate when this happens)
         [✔] Check why I get calls to get with an id that consists only of an actor's name
-[ ] Handle http signatures
+        [✔] Implement `db.followers` and `db.following`
 [✔] Write all the announcements (boosts) to the database to 
     their correct actors
 [✔] Check if we are already following users
 [✔] On GetOutbox read the database and present a list of the
     last posts.
+[✔] Make OS-independent (mosty directory separators)
+[✔] Create outbox.json programmatically
+[✔] Make storage configurable (search for "storage" in project)
+[ ] Handle http signatures
+[ ] Check if we're boosting only stuff from actors we follow, not whatever comes
+    through in our inbox
 [ ] Refactor, comment and clean up
 [ ] Split to pherephone and activityServe
 [ ] Check local actor names for characters illegal for filenames and ban them
 [ ] Add summary to actors.json
-[ ] Check if we're boosting only stuff from actors we follow, not whatever comes
-    through in our inbox
 [ ] Decide what's to be done with actors removed from `actors.json`.
     [ ] Remove them?
     [ ] Leave them read-only?
     [ ] Leave them as is?
 [ ] Check if an early failure in announcing posts causes a problem to the following ones
-[✔] Make OS-independent (mosty directory separators)
-[✔] Create outbox.json programmatically
-[✔] Make storage configurable (search for "storage" in project)
+[ ] Handle followers and following uri's
 
 [ ] Check if it's worth it to reuse pubActor instead of creating
     a new one every time

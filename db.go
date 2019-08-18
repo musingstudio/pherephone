@@ -270,12 +270,22 @@ func (d *database) SetOutbox(c context.Context, outbox vocab.ActivityStreamsOrde
 }
 
 func (d *database) Followers(c context.Context, actorIRI *url.URL) (followers vocab.ActivityStreamsCollection, err error) {
-	////log.Println("db")
+	items := streams.NewActivityStreamsItemsProperty()
+	for follower := range d.grandparent.followers {
+		iri, _ := url.Parse(follower)
+		items.AppendIRI(iri)
+	}
+	followers.SetActivityStreamsItems(items)
 	return
 }
 
 func (d *database) Following(c context.Context, actorIRI *url.URL) (followers vocab.ActivityStreamsCollection, err error) {
-	//log.Println("db")
+	items := streams.NewActivityStreamsItemsProperty()
+	for following := range d.grandparent.following {
+		iri, _ := url.Parse(following)
+		items.AppendIRI(iri)
+	}
+	followers.SetActivityStreamsItems(items)
 	return
 }
 
