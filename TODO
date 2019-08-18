@@ -34,10 +34,11 @@
 [✔] Make OS-independent (mosty directory separators)
 [✔] Create outbox.json programmatically
 [✔] Make storage configurable (search for "storage" in project)
-[ ] Handle http signatures
-[ ] Check if we're boosting only stuff from actors we follow, not whatever comes
+[✔] Check if we're boosting only stuff from actors we follow, not whatever comes
     through in our inbox
+[✔] Boost not only articles but other things too
 [ ] Refactor, comment and clean up
+[ ] Handle http signatures
 [ ] Split to pherephone and activityServe
 [ ] Check local actor names for characters illegal for filenames and ban them
 [ ] Add summary to actors.json
@@ -47,6 +48,7 @@
     [ ] Leave them as is?
 [ ] Check if an early failure in announcing posts causes a problem to the following ones
 [ ] Handle followers and following uri's
-
+[ ] Handle post uri's
+ 
 [ ] Check if it's worth it to reuse pubActor instead of creating
     a new one every time

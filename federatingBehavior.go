@@ -25,13 +25,19 @@ func newFederatingBehavior(db *database) *federatingBehavior {
 }
 
 func (f *federatingBehavior) PostInboxRequestBodyHook(c context.Context, r *http.Request, activity pub.Activity) (out context.Context, err error) {
+
 	// it's a post of some kind, boost it
 	if activity.GetTypeName() == "Create" {
 		object := activity.GetActivityStreamsObject()
-		// assume it's an article
-		// TODO: check what it is and boost it anyway
-		article := object.Begin().GetActivityStreamsArticle()
-		id := article.GetActivityStreamsId()
+		// check if we are following the author. If we don't
+		// it means that we relay whatever comes in and we might be 
+		// a vehicle for spam
+		author := activity.GetActivityStreamsActor().Begin().GetIRI().String()
+		// check if we are following this actor and if not bail out
+		if f.parent.following[author] == nil {
+			return
+		}
+		id := object.Begin().GetType().GetActivityStreamsId()
 		f.parent.Announce(id.GetIRI().String())
 	} else if activity.GetTypeName() == "Follow" {
 		// it's a follow, write it down
