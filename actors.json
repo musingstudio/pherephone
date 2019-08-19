@@ -1,17 +1,29 @@
 {
-    "myAwesomeList" : [
-        "http://writefreely.xps/api/collections/qwazix"
-    ],
-    "yetAnotherList" : [
-        "http://writefreely.xps/api/collections/qwazix",
-        "http://mixt.qwazix.com/api/collections/qwazix"
-    ],
-    "nuList" : [
-        "http://mastodon.social/users/qwazix",
-        "http://cybre.space/users/qwazix"
-    ],
-    "nuerList" : [
-        "http://writefreely.xps/api/collections/qwazix",
-        "http://mixt.qwazix.com/api/collections/qwazix"
-    ]
+    "myAwesomeList" : {
+        "summary": "a list of favorite writers",
+        "follow": [
+            "http://writefreely.xps/api/collections/qwazix"
+        ]
+    },
+    "yetAnotherList" : {
+        "summary": "another list, this one of hitposters",
+        "follow":  [
+            "http://writefreely.xps/api/collections/qwazix",
+            "http://mixt.qwazix.com/api/collections/qwazix"
+        ]
+    },
+    "nuList" : {
+        "summary": "a new list of fedi-friends",
+        "follow":  [
+            "http://mastodon.social/users/qwazix",
+            "http://cybre.space/users/qwazix"
+        ]
+    },
+    "nuerList" : {
+        "summary": "an even newer list of stuff to follow",
+        "follow":  [
+            "http://writefreely.xps/api/collections/qwazix",
+            "http://mixt.qwazix.com/api/collections/qwazix"
+        ]
+    }
 }

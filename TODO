@@ -39,11 +39,11 @@
 [✔] Boost not only articles but other things too
 [✔] Handle post uri's
 [✔] Sanitize input, never allow slashes or dots
+[ ] Check local actor names for characters illegal for filenames and ban them
 [ ] Refactor, comment and clean up
 [ ] Handle http signatures
 [ ] Split to pherephone and activityServe
-[ ] Check local actor names for characters illegal for filenames and ban them
-[ ] Add summary to actors.json
+[✔] Add summary to actors.json
 [ ] Decide what's to be done with actors removed from `actors.json`.
     [ ] Remove them?
     [ ] Leave them read-only?

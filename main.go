@@ -157,16 +157,18 @@ func main() {
 
 	// Unmarshall it into a map of string arrays
 	// TODO add summary thus making this map[string]interface{}
-	whoFollowsWho := make(map[string][]string)
+	whoFollowsWho := make(map[string]map[string]interface{})
 	byteValue, _ := ioutil.ReadAll(jsonFile)
 	json.Unmarshal(byteValue, &whoFollowsWho)
 
 	// log.Println(string(byteValue))
 	// create all local actors if they don't exist yet
-	for follower, followees := range whoFollowsWho {
+	for follower, data := range whoFollowsWho {
+		log.Println(data["follow"])
+		followees := data["follow"].([]interface{})
 		log.Println()
 		log.Println("Local Actor: " + follower)
-		followerActor, err := GetActor(follower, "emptySummary", "Service", baseURL+follower)
+		followerActor, err := GetActor(follower, data["summary"].(string), "Service", baseURL+follower)
 		if err != nil {
 			log.Println("error creating local follower")
 			return
@@ -175,7 +177,7 @@ func main() {
 		log.Println("Users to relay:")
 		for _, followee := range followees {
 			log.Println(followee)
-			followerActor.Follow(followee)
+			followerActor.Follow(followee.(string))
 		}
 	}
 	log.Fatal(http.ListenAndServe(":8081", nil))
