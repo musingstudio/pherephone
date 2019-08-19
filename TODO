@@ -43,6 +43,8 @@
 [✔] Check local actor names for characters illegal for filenames and ban them
 [ ] Refactor, comment and clean up
 [✔] Create debug flag
+[ ] Implement Update
+[ ] Implement Delete
 [ ] Handle http signatures
 [ ] Split to pherephone and activityServe
 [ ] Decide what's to be done with actors removed from `actors.json`.

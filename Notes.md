@@ -218,3 +218,7 @@ I want users to be able to use this as simply as possible so this way this will 
 
 This means that if we want to handle non ActivityPub requests to the same endpoint we have 
 to return whether we did handle the request
+
+## The idea of parent and grandparent somehow doesn't feel right (at least for db.go)
+
+## The idea of <actor>.json and actor.json is confusing

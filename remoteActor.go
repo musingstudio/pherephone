@@ -1,6 +1,5 @@
 package main
 
-
 import (
 	// "log"
 	"github.com/gologme/log"
