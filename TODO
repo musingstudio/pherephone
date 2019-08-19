@@ -38,7 +38,7 @@
     through in our inbox
 [✔] Boost not only articles but other things too
 [✔] Handle post uri's
-[ ] Sanitize input, never allow slashes or dots
+[✔] Sanitize input, never allow slashes or dots
 [ ] Refactor, comment and clean up
 [ ] Handle http signatures
 [ ] Split to pherephone and activityServe
@@ -50,5 +50,7 @@
     [ ] Leave them as is?
 [ ] Check if an early failure in announcing posts causes a problem to the following ones
 [ ] Handle followers and following uri's
+[ ] Do I care about the inbox?
+[ ] Maybe look at implementing lock files?
 [𐄂] Check if it's worth it to reuse pubActor instead of creating
     a new one every time

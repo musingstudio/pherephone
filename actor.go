@@ -3,11 +3,13 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
 	"os"
+	"strings"
 
 	"github.com/go-fed/activity/streams"
 
@@ -19,11 +21,11 @@ var slash = string(os.PathSeparator)
 // Actor represents a local actor we can act on
 // behalf of.
 type Actor struct {
-	name, summary, actorType, iri	string
-	pubActor						pub.FederatingActor
-	nuIri							*url.URL
-	followers, following			map[string]interface{}
-	posts							map[int]map[string]string
+	name, summary, actorType, iri string
+	pubActor                      pub.FederatingActor
+	nuIri                         *url.URL
+	followers, following          map[string]interface{}
+	posts                         map[int]map[string]string
 }
 
 // ActorToSave is a stripped down actor representation
@@ -115,7 +117,7 @@ func (a *Actor) save() error {
 	// check if we already have a directory to save actors
 	// and if not, create it
 	if _, err := os.Stat(storage + slash + "actors" + slash + a.name); os.IsNotExist(err) {
-		os.MkdirAll(storage + slash + "actors" + slash + a.name + slash, 0755)
+		os.MkdirAll(storage+slash+"actors"+slash+a.name+slash, 0755)
 	}
 
 	actorToSave := ActorToSave{
@@ -134,17 +136,15 @@ func (a *Actor) save() error {
 	}
 	// log.Println(actorToSave)
 	// log.Println(string(actorJSON))
-	err = ioutil.WriteFile(storage + slash + "actors"+slash+a.name+slash+a.name+".json", actorJSON, 0644)
+	err = ioutil.WriteFile(storage+slash+"actors"+slash+a.name+slash+a.name+".json", actorJSON, 0644)
 	if err != nil {
 		log.Printf("WriteFileJson ERROR: %+v", err)
 		return err
 	}
 
-	
-
 	// save pubActor to a separate file
 	actorJSON = []byte(a.whoAmI())
-	err = ioutil.WriteFile(storage + slash + "actors"+slash+a.name+slash+"actor.json", actorJSON, 0644)
+	err = ioutil.WriteFile(storage+slash+"actors"+slash+a.name+slash+"actor.json", actorJSON, 0644)
 	if err != nil {
 		log.Printf("WriteFileJson ERROR: %+v", err)
 		return err
@@ -172,6 +172,11 @@ func GetActor(name, summary, actorType, iri string) (Actor, error) {
 // LoadActor searches the filesystem and creates an Actor
 // from the data in name.json
 func LoadActor(name string) (Actor, error) {
+	// make sure our users can't read our hard drive
+	if strings.ContainsAny(name, "./ ") {
+		log.Println("Illegal characters in actor name")
+		return Actor{}, errors.New("Illegal characters in actor name")
+	}
 	jsonFile := storage + slash + "actors" + slash + name + slash + name + ".json"
 	fileHandle, err := os.Open(jsonFile)
 	if os.IsNotExist(err) {
@@ -303,24 +308,33 @@ func (a *Actor) Announce(object string) error {
 func (a *Actor) whoAmI() string {
 	return `{"@context":	"https://www.w3.org/ns/activitystreams",
 	"type": "` + a.actorType + `",
-	"id": "`+ baseURL + a.name + `/",
-	"name": "`+ a.name +`",
+	"id": "` + baseURL + a.name + `/",
+	"name": "` + a.name + `",
 	"preferredUsername": "` + a.name + `",
 	"summary": "` + a.summary + `",
-	"inbox": "`+ baseURL + a.name + `/inbox/",
-	"outbox": "`+ baseURL + a.name + `/outbox/",
-	"followers": "`+ baseURL + a.name + `/followers/",
-	"following": "`+ baseURL + a.name + `/following/",
-	"liked": "`+ baseURL + a.name + `/liked/"}`
+	"inbox": "` + baseURL + a.name + `/inbox/",
+	"outbox": "` + baseURL + a.name + `/outbox/",
+	"followers": "` + baseURL + a.name + `/followers/",
+	"following": "` + baseURL + a.name + `/following/",
+	"liked": "` + baseURL + a.name + `/liked/"}`
 }
 
 func (a *Actor) getPost(hash string) (post string, err error) {
+	// make sure our users can't read our hard drive
+	if strings.ContainsAny(hash, "./ ") {
+		log.Println("Illegal characters in post name")
+		return "", errors.New("Illegal characters in post name")
+	}
+	if hash == a.name {
+		log.Println("Post id cannot be = to actor name")
+		return "", errors.New("Post id cannot be = to actor name")
+	}
 	filename := storage + slash + "actors" + slash + a.name + slash + hash + ".json"
 	post, err = readStringFromFile(filename)
 	if err != nil {
 		log.Println("this post doesn't exist")
 	}
-	return 
+	return
 }
 
 // HandleOutbox handles the outbox of our actor. It actually just

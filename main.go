@@ -1,25 +1,23 @@
 package main
 
 import (
+	"os"
 	"fmt"
-
-	// "github.com/go-fed/activity/streams"
-	"github.com/go-fed/activity/pub"
-	"github.com/gorilla/mux"
-
-	// "errors"
 	"log"
-	"net/http"
-
-	// "net/url"
+	// "strings"
+	// "errors"
 
 	"encoding/json"
 	"io/ioutil"
-	"os"
-
-	"gopkg.in/ini.v1"
-	// "html"
+	"net/http"
+	// "net/url"
 	// "context"
+	// "html"
+
+	"github.com/go-fed/activity/pub"
+	// "github.com/go-fed/activity/streams"
+	"github.com/gorilla/mux"
+	"gopkg.in/ini.v1"
 	// "github.com/davecgh/go-spew/spew"
 )
 
@@ -72,6 +70,8 @@ func main() {
 		actor, err := LoadActor(username)
 		if err != nil {
 			log.Println("Can't create local actor")
+			fmt.Fprintf(w, "404 - page not found")
+			w.WriteHeader(http.StatusNotFound)
 			return
 		}
 		if pub.IsActivityPubRequest(r) {
@@ -84,10 +84,14 @@ func main() {
 	var inboxHandler http.HandlerFunc = func(w http.ResponseWriter, r *http.Request) {
 		// Populate c with request-specific information
 		username := mux.Vars(r)["actor"]
-		// TODO replace this with a LoadActor that loads an actor from the database with this username
+		// Load actor information from storage/actors/<actor>/<actor>.json
+		// (not literal actor.json) (that one contains the activitystreams
+		// implementation of actor, that doesn't take care of storing followers)
 		actor, err := LoadActor(username)
 		if err != nil {
+			w.WriteHeader(http.StatusNotFound)
 			log.Println("Can't create local actor")
+			fmt.Fprintf(w, "404 - page not found")
 			return
 		}
 		if pub.IsActivityPubRequest(r) {
@@ -103,8 +107,10 @@ func main() {
 
 		username := mux.Vars(r)["actor"]
 		actor, err := LoadActor(username)
-		// error out if this actor does not exist
+		// error out if this actor does not exist (or there are dots or slashes in his name)
 		if err != nil {
+			w.WriteHeader(http.StatusNotFound)
+			fmt.Fprintf(w, "404 - page not found")
 			log.Println("Can't create local actor")
 			return
 		}
