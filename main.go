@@ -32,7 +32,14 @@ func main() {
 
 	// This is here for debugging purposes. I want to be able to easily spot in the terminal
 	// when a single execution starts
-	log.Println("======================= PHeRePHoNe ==========================")
+	fmt.Println()
+	fmt.Println("======================= PHeRePHoNe ==========================")
+
+	// introduce ourselves
+	fmt.Println()
+	fmt.Println("Pherephone follows some accounts and boosts")
+	fmt.Println("whatever they post to our followers. See config.ini ")
+	fmt.Println("for more information and how to set up. ")
 
 	// I prefer long file so that I can click it in the terminal and open it
 	// in the editor above
@@ -45,39 +52,50 @@ func main() {
 		fmt.Printf("Fail to read file: %v", err)
 		os.Exit(1)
 	}
+
 	// Load base url from configuration file
 	baseURL = cfg.Section("general").Key("baseURL").String()
 	// check if it ends with a / and append one if not
 	if baseURL[len(baseURL)-1:] != "/" {
 		baseURL += "/"
 	}
-	log.Println("Domain Name:", baseURL)
+	// print it for our users
+	fmt.Println()
+	fmt.Println("Domain Name:", baseURL)
 
 	// Load storage location (only local filesystem supported for now) from config
 	storage = cfg.Section("general").Key("storage").String()
-	log.Println("Storage Location:", storage)
-	log.Println()
-	log.Println("Take a look at config.ini if you want to change the above values")
+	cwd, err := os.Getwd()
+	fmt.Println("Storage Location:", cwd + slash + storage)
+	fmt.Println()
 
-	// prepare storage
-	if _, err := os.Stat(storage + slash + "foreign"); os.IsNotExist(err) {
-		os.MkdirAll(storage+slash+"foreign", 0755)
+	// prepare storage for foreign activities (activities we store that don't
+	// belong to us)
+	foreignDir := storage + slash + "foreign"
+	if _, err := os.Stat(foreignDir); os.IsNotExist(err) {
+		os.MkdirAll(foreignDir, 0755)
 	}
 
 	// This could work too if we don't want to handle multiple actors and stuff:
 	// var outboxHandler http.HandlerFunc = actor.HandleOutbox
 	// might consider moving the whole thing to another file
 	var outboxHandler http.HandlerFunc = func(w http.ResponseWriter, r *http.Request) {
-		username := mux.Vars(r)["actor"]
-		actor, err := LoadActor(username)
-		if err != nil {
-			log.Println("Can't create local actor")
+		username := mux.Vars(r)["actor"] // get the needed actor from the muxer (url variable {actor} below)
+		actor, err := LoadActor(username) // load the actor from disk
+		if err != nil { // either actor requested has illegal characters or 
+			log.Println("Can't load local actor") // we don't have such actor
 			fmt.Fprintf(w, "404 - page not found")
 			w.WriteHeader(http.StatusNotFound)
 			return
 		}
-		if pub.IsActivityPubRequest(r) {
-			actor.HandleOutbox(w, r)
+		// check if the ActivityPub headers exist
+		// Content-Type: application/activity+json; profile="https://www.w3.org/ns/activitystreams"
+		// Accept: application/activity+json
+		// pherephone doesn't have a web interface though so 
+		// maybe I shouldn't make debugging harder (TBD) and let
+		// the user see the json in the browser
+		if pub.IsActivityPubRequest(r) { 
+			actor.HandleOutbox(w, r)     
 		} else {
 			// The above does nothing if it's a non-ActivityPub request so
 			// handle non-ActivityPub request here, such as serving a webpage.
@@ -92,7 +110,7 @@ func main() {
 		actor, err := LoadActor(username)
 		if err != nil {
 			w.WriteHeader(http.StatusNotFound)
-			log.Println("Can't create local actor")
+			log.Println("Can't load local actor")
 			fmt.Fprintf(w, "404 - page not found")
 			return
 		}
@@ -106,7 +124,6 @@ func main() {
 
 	var actorHandler http.HandlerFunc = func(w http.ResponseWriter, r *http.Request) {
 		log.Println("Remote server just fetched our /actor endpoint")
-
 		username := mux.Vars(r)["actor"]
 		actor, err := LoadActor(username)
 		// error out if this actor does not exist (or there are dots or slashes in his name)
@@ -158,7 +175,6 @@ func main() {
 	}
 
 	// Unmarshall it into a map of string arrays
-	// TODO add summary thus making this map[string]interface{}
 	whoFollowsWho := make(map[string]map[string]interface{})
 	byteValue, _ := ioutil.ReadAll(jsonFile)
 	json.Unmarshal(byteValue, &whoFollowsWho)
@@ -166,13 +182,12 @@ func main() {
 	// log.Println(string(byteValue))
 	// create all local actors if they don't exist yet
 	for follower, data := range whoFollowsWho {
-		log.Println(data["follow"])
 		followees := data["follow"].([]interface{})
 		log.Println()
 		log.Println("Local Actor: " + follower)
 		if strings.ContainsAny(follower, " \\/:*?\"<>|") {
-			log.Println("local actors can't have spaces or any of these characters in their name: \\/:*?\"<>|")
-			log.Println("Actor " + follower + " will be ignored")
+			fmt.Println("local actors can't have spaces or any of these characters in their name: \\/:*?\"<>|")
+			fmt.Println("Actor " + follower + " will be ignored")
 			continue
 		}
 		followerActor, err := GetActor(follower, data["summary"].(string), "Service", baseURL+follower)
