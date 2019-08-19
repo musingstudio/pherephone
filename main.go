@@ -1,15 +1,17 @@
 package main
 
 import (
-	"os"
 	"fmt"
 	"log"
-	// "strings"
+	"os"
+	"strings"
+
 	// "errors"
 
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
+
 	// "net/url"
 	// "context"
 	// "html"
@@ -168,6 +170,11 @@ func main() {
 		followees := data["follow"].([]interface{})
 		log.Println()
 		log.Println("Local Actor: " + follower)
+		if strings.ContainsAny(follower, " \\/:*?\"<>|") {
+			log.Println("local actors can't have spaces or any of these characters in their name: \\/:*?\"<>|")
+			log.Println("Actor " + follower + " will be ignored")
+			continue
+		}
 		followerActor, err := GetActor(follower, data["summary"].(string), "Service", baseURL+follower)
 		if err != nil {
 			log.Println("error creating local follower")

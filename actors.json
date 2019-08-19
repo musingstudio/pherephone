@@ -25,5 +25,12 @@
             "http://writefreely.xps/api/collections/qwazix",
             "http://mixt.qwazix.com/api/collections/qwazix"
         ]
+    },
+    "ill/egal actor" : { "summary": "an even newer list of stuff to follow",
+        "follow":  [
+            "http://writefreely.xps/api/collections/qwazix",
+            "http://mixt.qwazix.com/api/collections/qwazix"
+        ]
+
     }
 }
