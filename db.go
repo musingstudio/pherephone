@@ -13,7 +13,8 @@ import (
 	"github.com/go-fed/activity/streams/vocab"
 
 	"encoding/json"
-	"log"
+	// "log"
+	"github.com/gologme/log"
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/dchest/uniuri"
@@ -24,18 +25,18 @@ type database struct {
 }
 
 func (d *database) Lock(c context.Context, id *url.URL) error {
-	//log.Println("db")
+	//log.Info("db")
 	return nil
 }
 
 func (d *database) Unlock(c context.Context, id *url.URL) error {
-	//log.Println("db")
+	//log.Info("db")
 	return nil
 }
 
 func (d *database) NewId(c context.Context, t vocab.Type) (id *url.URL, err error) {
 
-	log.Println("newID")
+	log.Info("newID")
 
 	unique := uniuri.New()
 	id, err = url.Parse(baseURL + d.grandparent.name + "/" + unique)
@@ -44,18 +45,18 @@ func (d *database) NewId(c context.Context, t vocab.Type) (id *url.URL, err erro
 }
 
 func (d *database) InboxContains(c context.Context, inbox, id *url.URL) (contains bool, err error) {
-	//log.Println("db")
+	//log.Info("db")
 	return
 }
 
 func (d *database) GetInbox(c context.Context, inboxIRI *url.URL) (inbox vocab.ActivityStreamsOrderedCollectionPage, err error) {
-	log.Println("getInboxdb")
+	log.Info("getInboxdb")
 	inbox = streams.NewActivityStreamsOrderedCollectionPage()
 	return
 }
 
 func (d *database) SetInbox(c context.Context, inbox vocab.ActivityStreamsOrderedCollectionPage) error {
-	//log.Println("db")
+	//log.Info("db")
 	var err error
 	return err
 }
@@ -125,7 +126,7 @@ func (d *database) parseIRI(id *url.URL) (actor string, hash string) {
 }
 
 func (d *database) Get(c context.Context, id *url.URL) (value vocab.Type, err error) {
-	log.Println("call to Get with id: " + id.String())
+	log.Info("call to Get with id: " + id.String())
 	//TODO: replace / with \ for windows
 	var jsonFile string
 	if owns, _ := d.Owns(c, id); owns {
@@ -140,20 +141,20 @@ func (d *database) Get(c context.Context, id *url.URL) (value vocab.Type, err er
 	}
 	jsonMap, err := readJSON(jsonFile)
 	if err != nil {
-		log.Println("probably the item doesn't exist in our database")
+		log.Info("probably the item doesn't exist in our database")
 		return
 	}
 	// spew.Dump(jsonMap)
 	value, err = streams.ToType(c, jsonMap)
 	if err != nil {
-		log.Println("something is wrong with the conversion of JSON to vocab.Type")
+		log.Info("something is wrong with the conversion of JSON to vocab.Type")
 		return
 	}
 	return
 }
 
 func (d *database) Create(c context.Context, asType vocab.Type) (err error) {
-	log.Println("call to create with " + asType.GetActivityStreamsId().GetIRI().String())
+	log.Info("call to create with " + asType.GetActivityStreamsId().GetIRI().String())
 	serialized, _ := asType.Serialize()
 	// spew.Dump(serialized)
 	json, _ := json.MarshalIndent(serialized, "", "\t")
@@ -178,8 +179,8 @@ func (d *database) Create(c context.Context, asType vocab.Type) (err error) {
 		filepart := makeURLsaveable(asType.GetActivityStreamsId().Get().String())
 		filename = storage + slash + "foreign" + slash + filepart + ".json"
 	}
-	// log.Println("this is id v")
-	// log.Println(id)
+	// log.Info("this is id v")
+	// log.Info(id)
 
 	err = ioutil.WriteFile(filename, json, 0644)
 	if err != nil {
@@ -191,25 +192,25 @@ func (d *database) Create(c context.Context, asType vocab.Type) (err error) {
 }
 
 func (d *database) Update(c context.Context, asType vocab.Type) (err error) {
-	//log.Println("db")
+	//log.Info("db")
 	return
 }
 
 func (d *database) Delete(c context.Context, id *url.URL) (err error) {
-	//log.Println("db")
+	//log.Info("db")
 	return
 }
 
 // GetOutbox actually unserializes the outbox json back to vocab.ActivityStreamsOrderedCollectionPage
 func (d *database) GetOutbox(c context.Context, outboxIRI *url.URL) (outbox vocab.ActivityStreamsOrderedCollectionPage, err error) {
-	log.Println("getOutbox")
+	log.Info("getOutbox")
 	outbox = streams.NewActivityStreamsOrderedCollectionPage()
 	jsonFile := storage + slash + "actors" + slash + d.grandparent.name + slash + "outbox.json"
 	orderedItems := streams.NewActivityStreamsOrderedItemsProperty()
 	outbox.SetActivityStreamsOrderedItems(orderedItems)
 	outboxData, err := readJSON(jsonFile)
 	if err != nil {
-		log.Println("Couldn't load outbox, creating...")
+		log.Info("Couldn't load outbox, creating...")
 		d.SetOutbox(c, outbox)
 		// we handled the error so nil
 		return outbox, nil
@@ -247,16 +248,16 @@ func (d *database) GetOutbox(c context.Context, outboxIRI *url.URL) (outbox voca
 // SetOutbox is being fed with the new outbox and we have to compare it with the old outbox and implement the differences. In our
 // case we just overwrite it because we don't have any structured data.
 func (d *database) SetOutbox(c context.Context, outbox vocab.ActivityStreamsOrderedCollectionPage) error {
-	log.Println("db.SetOutbox")
+	log.Info("db.SetOutbox")
 	serialized, _ := outbox.Serialize()
 	json, _ := json.MarshalIndent(serialized, "", "\t")
 	// spew.Dump(string(json))
 
-	log.Println("Creating outbox for " + d.grandparent.name)
+	log.Info("Creating outbox for " + d.grandparent.name)
 	// the actor ought to exist otherwise something is really wrong
 	_, err := os.Stat(storage + slash + "actors" + slash + d.grandparent.name)
 	if err != nil {
-		log.Println("Can't access actor diretory, something is wrong")
+		log.Info("Can't access actor diretory, something is wrong")
 		return err
 	}
 
@@ -290,6 +291,6 @@ func (d *database) Following(c context.Context, actorIRI *url.URL) (followers vo
 }
 
 func (d *database) Liked(c context.Context, actorIRI *url.URL) (followers vocab.ActivityStreamsCollection, err error) {
-	//log.Println("db")
+	//log.Info("db")
 	return
 }

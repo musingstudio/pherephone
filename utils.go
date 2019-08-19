@@ -1,7 +1,9 @@
 package main
 
 import (
-	"log"
+	// "log"
+	"github.com/gologme/log"
+
 	"io/ioutil"
 
 	"os"
@@ -13,7 +15,7 @@ import (
 func PrettyPrint(themap map[string]interface{}){
 	b, err := json.MarshalIndent(themap, "", "  ")
 	if err != nil {
-		log.Println("error:", err)
+		log.Info("error:", err)
 	}
 	log.Print(string(b))
 }
@@ -21,12 +23,12 @@ func PrettyPrint(themap map[string]interface{}){
 func readStringFromFile(filename string) (string, error) {
 	fileHandle, err := os.Open(filename)
 	if os.IsNotExist(err) {
-		log.Println("file " + filename + " cannot be opened")
+		log.Info("file " + filename + " cannot be opened")
 		return "", err
 	}
 	byteValue, err := ioutil.ReadAll(fileHandle)
 	if err != nil {
-		log.Println("Error reading " + filename + " file")
+		log.Info("Error reading " + filename + " file")
 		return "", err
 	}
 	return string(byteValue), nil
@@ -36,12 +38,12 @@ func readJSON(filename string) (map[string]interface{}, error){
 	
 	fileHandle, err := os.Open(filename)
 	if os.IsNotExist(err) {
-		log.Println("file " + filename + " cannot be opened")
+		log.Info("file " + filename + " cannot be opened")
 		return nil, err
 	}
 	byteValue, err := ioutil.ReadAll(fileHandle)
 	if err != nil {
-		log.Println("Error reading " + filename + " file")
+		log.Info("Error reading " + filename + " file")
 		return nil, err
 	}
 	jsonData := make(map[string]interface{})

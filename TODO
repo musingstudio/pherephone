@@ -42,7 +42,7 @@
 [✔] Add summary to actors.json
 [✔] Check local actor names for characters illegal for filenames and ban them
 [ ] Refactor, comment and clean up
-[ ] Create debug flag
+[✔] Create debug flag
 [ ] Handle http signatures
 [ ] Split to pherephone and activityServe
 [ ] Decide what's to be done with actors removed from `actors.json`.

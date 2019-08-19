@@ -4,13 +4,15 @@ import (
 	// "github.com/go-fed/activity/streams"
 	"context"
 	"errors"
-	"log"
+	// "log"
 	"net/http"
 	"net/url"
 
 	"github.com/go-fed/activity/pub"
 	"github.com/go-fed/activity/streams/vocab"
 	// "strings"
+
+	"github.com/gologme/log"
 )
 
 type federatingBehavior struct {
@@ -45,12 +47,12 @@ func (f *federatingBehavior) PostInboxRequestBodyHook(c context.Context, r *http
 		newFollower := actor.Begin().GetIRI().String()
 		// check we aren't following ourselves
 		if newFollower == f.parent.iri {
-			log.Println("You can't follow yourself")
+			log.Info("You can't follow yourself")
 			return out, errors.New("You can't follow yourself")
 		}
 		// check if this user is already following us
 		if _, ok := f.parent.followers[newFollower]; ok {
-			log.Println("You're already following us, yay!")
+			log.Info("You're already following us, yay!")
 			// do nothing, they're already following us
 			return
 		}
@@ -91,7 +93,7 @@ func (f *federatingBehavior) FilterForwarding(c context.Context, potentialRecipi
 }
 
 func (f *federatingBehavior) GetInbox(c context.Context, r *http.Request) (ocp vocab.ActivityStreamsOrderedCollectionPage, err error) {
-	log.Println("getInbox")
+	log.Info("getInbox")
 	var inboxIRI *url.URL
 	ocp, err = f.db.GetInbox(c, inboxIRI)
 	return

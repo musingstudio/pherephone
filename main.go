@@ -2,7 +2,8 @@ package main
 
 import (
 	"fmt"
-	"log"
+	// "log"
+	"flag"
 	"os"
 	"strings"
 
@@ -17,6 +18,8 @@ import (
 	// "html"
 
 	"github.com/go-fed/activity/pub"
+	"github.com/gologme/log"
+
 	// "github.com/go-fed/activity/streams"
 	"github.com/gorilla/mux"
 	"gopkg.in/ini.v1"
@@ -41,10 +44,24 @@ func main() {
 	fmt.Println("whatever they post to our followers. See config.ini ")
 	fmt.Println("for more information and how to set up. ")
 
+	debugFlag := flag.Bool("debug", false, "set to true to get debugging information in the console")
+	flag.Parse()
+
 	// I prefer long file so that I can click it in the terminal and open it
 	// in the editor above
 	log.SetFlags(log.Llongfile)
 	// log.SetFlags(log.LstdFlags | log.Lshortfile)
+	log.EnableLevel("warn")
+	// create a logger with levels but without prefixes for easier to read
+	// debug output
+	printer := log.New(os.Stdout, " ", 0)
+
+	if *debugFlag == true {
+		fmt.Println()
+		fmt.Println("debug mode on")
+		log.EnableLevel("info")
+		printer.EnableLevel("info")
+	}
 
 	// read configuration file (config.ini)
 	cfg, err := ini.Load("config.ini")
@@ -66,7 +83,7 @@ func main() {
 	// Load storage location (only local filesystem supported for now) from config
 	storage = cfg.Section("general").Key("storage").String()
 	cwd, err := os.Getwd()
-	fmt.Println("Storage Location:", cwd + slash + storage)
+	fmt.Println("Storage Location:", cwd+slash+storage)
 	fmt.Println()
 
 	// prepare storage for foreign activities (activities we store that don't
@@ -80,10 +97,10 @@ func main() {
 	// var outboxHandler http.HandlerFunc = actor.HandleOutbox
 	// might consider moving the whole thing to another file
 	var outboxHandler http.HandlerFunc = func(w http.ResponseWriter, r *http.Request) {
-		username := mux.Vars(r)["actor"] // get the needed actor from the muxer (url variable {actor} below)
+		username := mux.Vars(r)["actor"]  // get the needed actor from the muxer (url variable {actor} below)
 		actor, err := LoadActor(username) // load the actor from disk
-		if err != nil { // either actor requested has illegal characters or 
-			log.Println("Can't load local actor") // we don't have such actor
+		if err != nil {                   // either actor requested has illegal characters or
+			log.Info("Can't load local actor") // we don't have such actor
 			fmt.Fprintf(w, "404 - page not found")
 			w.WriteHeader(http.StatusNotFound)
 			return
@@ -91,11 +108,11 @@ func main() {
 		// check if the ActivityPub headers exist
 		// Content-Type: application/activity+json; profile="https://www.w3.org/ns/activitystreams"
 		// Accept: application/activity+json
-		// pherephone doesn't have a web interface though so 
+		// pherephone doesn't have a web interface though so
 		// maybe I shouldn't make debugging harder (TBD) and let
 		// the user see the json in the browser
-		if pub.IsActivityPubRequest(r) { 
-			actor.HandleOutbox(w, r)     
+		if pub.IsActivityPubRequest(r) {
+			actor.HandleOutbox(w, r)
 		} else {
 			// The above does nothing if it's a non-ActivityPub request so
 			// handle non-ActivityPub request here, such as serving a webpage.
@@ -110,7 +127,7 @@ func main() {
 		actor, err := LoadActor(username)
 		if err != nil {
 			w.WriteHeader(http.StatusNotFound)
-			log.Println("Can't load local actor")
+			log.Info("Can't load local actor")
 			fmt.Fprintf(w, "404 - page not found")
 			return
 		}
@@ -123,14 +140,14 @@ func main() {
 	}
 
 	var actorHandler http.HandlerFunc = func(w http.ResponseWriter, r *http.Request) {
-		log.Println("Remote server just fetched our /actor endpoint")
+		log.Info("Remote server just fetched our /actor endpoint")
 		username := mux.Vars(r)["actor"]
 		actor, err := LoadActor(username)
 		// error out if this actor does not exist (or there are dots or slashes in his name)
 		if err != nil {
 			w.WriteHeader(http.StatusNotFound)
 			fmt.Fprintf(w, "404 - page not found")
-			log.Println("Can't create local actor")
+			log.Info("Can't create local actor")
 			return
 		}
 		fmt.Fprintf(w, actor.whoAmI())
@@ -142,7 +159,7 @@ func main() {
 		actor, err := LoadActor(username)
 		// error out if this actor does not exist
 		if err != nil {
-			log.Println("Can't create local actor")
+			log.Info("Can't create local actor")
 			return
 		}
 		post, err := actor.getPost(hash)
@@ -170,8 +187,8 @@ func main() {
 	// of remote actors any of them relays (boosts, announces)
 	jsonFile, err := os.Open("actors.json")
 	if err != nil {
-		log.Println("something is wrong with the json file containing the actors")
-		log.Println(err)
+		log.Info("something is wrong with the json file containing the actors")
+		log.Info(err)
 	}
 
 	// Unmarshall it into a map of string arrays
@@ -179,26 +196,26 @@ func main() {
 	byteValue, _ := ioutil.ReadAll(jsonFile)
 	json.Unmarshal(byteValue, &whoFollowsWho)
 
-	// log.Println(string(byteValue))
+	// log.Info(string(byteValue))
 	// create all local actors if they don't exist yet
 	for follower, data := range whoFollowsWho {
 		followees := data["follow"].([]interface{})
-		log.Println()
-		log.Println("Local Actor: " + follower)
+		printer.Info()
+		log.Info("Local Actor: " + follower)
 		if strings.ContainsAny(follower, " \\/:*?\"<>|") {
-			fmt.Println("local actors can't have spaces or any of these characters in their name: \\/:*?\"<>|")
-			fmt.Println("Actor " + follower + " will be ignored")
+			log.Warn("local actors can't have spaces or any of these characters in their name: \\/:*?\"<>|")
+			log.Warn("Actor " + follower + " will be ignored")
 			continue
 		}
 		followerActor, err := GetActor(follower, data["summary"].(string), "Service", baseURL+follower)
 		if err != nil {
-			log.Println("error creating local follower")
+			log.Info("error creating local follower")
 			return
 		}
 		// Now follow each one of it's users
-		log.Println("Users to relay:")
+		log.Info("Users to relay:")
 		for _, followee := range followees {
-			log.Println(followee)
+			log.Info(followee)
 			followerActor.Follow(followee.(string))
 		}
 	}

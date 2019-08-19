@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io/ioutil"
-	"log"
+	// "log"
 	"net/http"
 	"net/url"
 	"os"
@@ -14,6 +14,8 @@ import (
 	"github.com/go-fed/activity/streams"
 
 	"github.com/go-fed/activity/pub"
+	"github.com/gologme/log"
+
 )
 
 var slash = string(os.PathSeparator)
@@ -44,7 +46,7 @@ func newPubActor() (pub.FederatingActor, *commonBehavior, *federatingBehavior, *
 
 	clock, _ = newClock("Europe/Athens")
 	if err != nil {
-		log.Println("error creating clock")
+		log.Info("error creating clock")
 	}
 
 	common := newCommonBehavior(db)
@@ -86,7 +88,7 @@ func MakeActor(name, summary, actorType, iri string) (Actor, error) {
 	following := make(map[string]interface{})
 	nuIri, err := url.Parse(iri)
 	if err != nil {
-		log.Println("Something went wrong when parsing the local actor uri into net/url")
+		log.Info("Something went wrong when parsing the local actor uri into net/url")
 		return Actor{}, err
 	}
 	actor := Actor{
@@ -131,11 +133,11 @@ func (a *Actor) save() error {
 
 	actorJSON, err := json.MarshalIndent(actorToSave, "", "\t")
 	if err != nil {
-		log.Println("error Marshalling actor json")
+		log.Info("error Marshalling actor json")
 		return err
 	}
-	// log.Println(actorToSave)
-	// log.Println(string(actorJSON))
+	// log.Info(actorToSave)
+	// log.Info(string(actorJSON))
 	err = ioutil.WriteFile(storage+slash+"actors"+slash+a.name+slash+a.name+".json", actorJSON, 0644)
 	if err != nil {
 		log.Printf("WriteFileJson ERROR: %+v", err)
@@ -159,10 +161,10 @@ func GetActor(name, summary, actorType, iri string) (Actor, error) {
 	actor, err := LoadActor(name)
 
 	if err != nil {
-		log.Println("Actor doesn't exist, creating...")
+		log.Info("Actor doesn't exist, creating...")
 		actor, err = MakeActor(name, summary, actorType, iri)
 		if err != nil {
-			log.Println("Can't create actor!")
+			log.Info("Can't create actor!")
 			return Actor{}, err
 		}
 	}
@@ -174,18 +176,18 @@ func GetActor(name, summary, actorType, iri string) (Actor, error) {
 func LoadActor(name string) (Actor, error) {
 	// make sure our users can't read our hard drive
 	if strings.ContainsAny(name, "./ ") {
-		log.Println("Illegal characters in actor name")
+		log.Info("Illegal characters in actor name")
 		return Actor{}, errors.New("Illegal characters in actor name")
 	}
 	jsonFile := storage + slash + "actors" + slash + name + slash + name + ".json"
 	fileHandle, err := os.Open(jsonFile)
 	if os.IsNotExist(err) {
-		log.Println("We don't have this kind of actor stored")
+		log.Info("We don't have this kind of actor stored")
 		return Actor{}, err
 	}
 	byteValue, err := ioutil.ReadAll(fileHandle)
 	if err != nil {
-		log.Println("Error reading actor file")
+		log.Info("Error reading actor file")
 		return Actor{}, err
 	}
 	jsonData := make(map[string]interface{})
@@ -194,7 +196,7 @@ func LoadActor(name string) (Actor, error) {
 	pubActor, federating, common, db := newPubActor()
 	nuIri, err := url.Parse(jsonData["IRI"].(string))
 	if err != nil {
-		log.Println("Something went wrong when parsing the local actor uri into net/url")
+		log.Info("Something went wrong when parsing the local actor uri into net/url")
 		return Actor{}, err
 	}
 
@@ -228,9 +230,9 @@ func (a *Actor) Follow(user string) error {
 	iri, err := url.Parse(user)
 	// iri, err := url.Parse("https://print3d.social/users/qwazix/outbox")
 	if err != nil {
-		log.Println("something is wrong when parsing the remote" +
+		log.Info("something is wrong when parsing the remote" +
 			"actors iri into a url")
-		log.Println(err)
+		log.Info(err)
 		return err
 	}
 	to.AppendIRI(iri)
@@ -239,9 +241,9 @@ func (a *Actor) Follow(user string) error {
 	// add "from" actor
 	iri, err = url.Parse(a.iri)
 	if err != nil {
-		log.Println("something is wrong when parsing the local" +
+		log.Info("something is wrong when parsing the local" +
 			"actors iri into a url")
-		log.Println(err)
+		log.Info(err)
 		return err
 	}
 	actorProperty.AppendIRI(iri)
@@ -252,9 +254,9 @@ func (a *Actor) Follow(user string) error {
 	// TODO: maybe we need to add and ID property here too
 	// go-fed seems to require it, writefreely doesn't
 
-	// log.Println(c)
-	// log.Println(iri)
-	// log.Println(follow)
+	// log.Info(c)
+	// log.Info(iri)
+	// log.Info(follow)
 
 	if _, ok := a.following[user]; !ok {
 		a.following[user] = struct{}{}
@@ -268,12 +270,12 @@ func (a *Actor) Follow(user string) error {
 // Announce sends an announcement (boost) to the object
 // defined by the `object` url
 func (a *Actor) Announce(object string) error {
-	log.Println(1, "About to announce post with iri "+object)
+	log.Info(1, "About to announce post with iri "+object)
 	c := context.Background()
 
 	announcedIRI, err := url.Parse(object)
 	if err != nil {
-		log.Println("Can't parse object url")
+		log.Info("Can't parse object url")
 		return err
 	}
 	activityStreamsPublic, err := url.Parse("https://www.w3.org/ns/activitystreams#Public")
@@ -289,7 +291,7 @@ func (a *Actor) Announce(object string) error {
 	for follower := range a.followers {
 		followerIRI, err := url.Parse(follower)
 		if err != nil {
-			log.Println("This url is mangled: " + follower + ", ignoring")
+			log.Info("This url is mangled: " + follower + ", ignoring")
 		} else {
 			cc.AppendIRI(followerIRI)
 		}
@@ -322,17 +324,17 @@ func (a *Actor) whoAmI() string {
 func (a *Actor) getPost(hash string) (post string, err error) {
 	// make sure our users can't read our hard drive
 	if strings.ContainsAny(hash, "./ ") {
-		log.Println("Illegal characters in post name")
+		log.Info("Illegal characters in post name")
 		return "", errors.New("Illegal characters in post name")
 	}
 	if hash == a.name {
-		log.Println("Post id cannot be = to actor name")
+		log.Info("Post id cannot be = to actor name")
 		return "", errors.New("Post id cannot be = to actor name")
 	}
 	filename := storage + slash + "actors" + slash + a.name + slash + hash + ".json"
 	post, err = readStringFromFile(filename)
 	if err != nil {
-		log.Println("this post doesn't exist")
+		log.Info("this post doesn't exist")
 	}
 	return
 }
@@ -350,7 +352,7 @@ func (a *Actor) HandleOutbox(w http.ResponseWriter, r *http.Request) {
 		// Write to w
 		return
 	} else if handled {
-		log.Println("gethandled")
+		log.Info("gethandled")
 		return
 	}
 }
@@ -360,7 +362,7 @@ func (a *Actor) HandleOutbox(w http.ResponseWriter, r *http.Request) {
 func (a *Actor) HandleInbox(w http.ResponseWriter, r *http.Request) {
 	c := context.Background()
 	if handled, err := a.pubActor.PostInbox(c, w, r); err != nil {
-		log.Println(err)
+		log.Info(err)
 		// Write to w
 		return
 	} else if handled {
