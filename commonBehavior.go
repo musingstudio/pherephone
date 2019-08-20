@@ -9,9 +9,6 @@ import (
 	"github.com/go-fed/activity/streams/vocab"
 	"github.com/go-fed/httpsig"
 
-	"crypto/rand"
-	"crypto/rsa"
-
 	"github.com/gologme/log"
 
 	// "log"
@@ -69,15 +66,8 @@ func (a *commonBehavior) NewTransport(c context.Context, actorBoxIRI *url.URL, g
 		log.Info("something is wrong with the httpsigner function call")
 		log.Info(err)
 	}
-	pubKeyID := ""
-	rng := rand.Reader
-	privKey, err := rsa.GenerateKey(rng, 2048)
-	if err != nil{
-		log.Info("something is wrong with the httpsigner function call")
-		log.Info(err)
-	}
 
-	t = pub.NewHttpSigTransport(client, "pherephone", clock, getSigner, postSigner, pubKeyID, privKey)
+	t = pub.NewHttpSigTransport(client, "pherephone", clock, getSigner, postSigner, baseURL + a.parent.name + "#main-key", a.parent.privateKey)
 
 	return
 }

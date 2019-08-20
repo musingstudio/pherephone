@@ -11,6 +11,12 @@ import (
 	"os"
 	"strings"
 
+	"crypto"
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/x509"
+	"encoding/pem"
+
 	"github.com/go-fed/activity/streams"
 
 	"github.com/go-fed/activity/pub"
@@ -28,6 +34,10 @@ type Actor struct {
 	nuIri                         *url.URL
 	followers, following          map[string]interface{}
 	posts                         map[int]map[string]string
+	publicKey					  crypto.PublicKey
+	privateKey					  crypto.PrivateKey
+	publicKeyPem				  string
+	privateKeyPem				  string
 }
 
 // ActorToSave is a stripped down actor representation
@@ -35,8 +45,8 @@ type Actor struct {
 // able to marshal it.
 // see https://stackoverflow.com/questions/26327391/json-marshalstruct-returns
 type ActorToSave struct {
-	Name, Summary, ActorType, IRI string
-	Followers, Following          map[string]interface{}
+	Name, Summary, ActorType, IRI, PublicKey, PrivateKey string
+	Followers, Following          			 			 map[string]interface{}
 }
 
 func newPubActor() (pub.FederatingActor, *commonBehavior, *federatingBehavior, *database) {
@@ -102,6 +112,36 @@ func MakeActor(name, summary, actorType, iri string) (Actor, error) {
 		following: following,
 	}
 
+	// create actor's keypair
+	rng := rand.Reader
+	privateKey, err := rsa.GenerateKey(rng, 2048)
+	publicKey := privateKey.PublicKey
+
+	actor.publicKey = publicKey
+	actor.privateKey = privateKey
+
+	// marshal the crypto to pem
+	privateKeyDer := x509.MarshalPKCS1PrivateKey(privateKey)
+	privateKeyBlock := pem.Block{
+		Type:    "RSA PRIVATE KEY",
+		Headers: nil,
+		Bytes:   privateKeyDer,
+	}
+	actor.privateKeyPem = string(pem.EncodeToMemory(&privateKeyBlock))
+
+	publicKeyDer, err := x509.MarshalPKIXPublicKey(&publicKey)
+	if err != nil {
+		log.Info("Can't marshal public key")
+		return Actor{}, err
+	}
+
+	publicKeyBlock := pem.Block{
+		Type:    "PUBLIC KEY",
+		Headers: nil,
+		Bytes:   publicKeyDer,
+	}
+	actor.publicKeyPem = string(pem.EncodeToMemory(&publicKeyBlock))
+
 	err = actor.save()
 	if err != nil {
 		return actor, err
@@ -122,13 +162,20 @@ func (a *Actor) save() error {
 		os.MkdirAll(storage+slash+"actors"+slash+a.name+slash, 0755)
 	}
 
+	// marshal the crypto to json
+
+	// publicKey, _ := json.Marshal(a.publicKey)
+	// privateKey, _ := json.Marshal(a.privateKey)
+
 	actorToSave := ActorToSave{
-		Name:      a.name,
-		Summary:   a.summary,
-		ActorType: a.actorType,
-		IRI:       a.iri,
-		Followers: a.followers,
-		Following: a.following,
+		Name:       a.name,
+		Summary:    a.summary,
+		ActorType:  a.actorType,
+		IRI:        a.iri,
+		Followers:  a.followers,
+		Following:  a.following,
+		PublicKey:  a.publicKeyPem,
+		PrivateKey: a.privateKeyPem, 
 	}
 
 	actorJSON, err := json.MarshalIndent(actorToSave, "", "\t")
@@ -200,6 +247,32 @@ func LoadActor(name string) (Actor, error) {
 		return Actor{}, err
 	}
 
+	// publicKeyNewLines := strings.ReplaceAll(jsonData["PublicKey"].(string), "\\n", "\n")
+	// privateKeyNewLines := strings.ReplaceAll(jsonData["PrivateKey"].(string), "\\n", "\n")
+
+	publicKeyDecoded, rest := pem.Decode([]byte(jsonData["PublicKey"].(string)))
+	if publicKeyDecoded == nil{
+		log.Info(rest)
+		panic("failed to parse PEM block containing the public key")
+	}
+	publicKey, err := x509.ParsePKIXPublicKey(publicKeyDecoded.Bytes)
+	if err != nil{
+		log.Info("Can't parse public keys")
+		log.Info(err)
+		return Actor {}, err
+	}
+	privateKeyDecoded, rest := pem.Decode([]byte(jsonData["PrivateKey"].(string)))
+	if privateKeyDecoded == nil{
+		log.Info(rest)
+		panic("failed to parse PEM block containing the private key")
+	}
+	privateKey, err := x509.ParsePKCS1PrivateKey(privateKeyDecoded.Bytes)
+	if err != nil{
+		log.Info("Can't parse private keys")
+		log.Info(err)
+		return Actor {}, err
+	}
+
 	actor := Actor{
 		pubActor:  pubActor,
 		name:      name,
@@ -209,6 +282,8 @@ func LoadActor(name string) (Actor, error) {
 		nuIri:     nuIri,
 		followers: jsonData["Followers"].(map[string]interface{}),
 		following: jsonData["Following"].(map[string]interface{}),
+		publicKey: publicKey,
+		privateKey: privateKey,
 	}
 
 	federating.parent = &actor
@@ -318,7 +393,13 @@ func (a *Actor) whoAmI() string {
 	"outbox": "` + baseURL + a.name + `/outbox/",
 	"followers": "` + baseURL + a.name + `/followers/",
 	"following": "` + baseURL + a.name + `/following/",
-	"liked": "` + baseURL + a.name + `/liked/"}`
+	"liked": "` + baseURL + a.name + `/liked/",
+	"publicKey": {
+		"id": "` + baseURL + a.name + `#main-key",
+		"owner": "` + baseURL + a.name + `",
+		"publicKeyPem": "` + strings.ReplaceAll(a.publicKeyPem,"\n","\\n") + `"
+	  }
+	}`
 }
 
 func (a *Actor) getPost(hash string) (post string, err error) {
