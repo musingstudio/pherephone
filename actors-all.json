@@ -1,4 +1,36 @@
-[
-    "http://writefreely.xps/api/collections/qwazix",
-    "https://print3d.social/qwazix"
-]
+{
+    "myAwesomeList" : {
+        "summary": "a list of favorite writers",
+        "follow": [
+            "http://writefreely.xps/api/collections/qwazix"
+        ]
+    },
+    "yetAnotherList" : {
+        "summary": "another list, this one of hitposters",
+        "follow":  [
+            "http://writefreely.xps/api/collections/qwazix",
+            "http://mixt.qwazix.com/api/collections/qwazix"
+        ]
+    },
+    "nuList" : {
+        "summary": "a new list of fedi-friends",
+        "follow":  [
+            "http://mastodon.social/users/qwazix",
+            "http://cybre.space/users/qwazix"
+        ]
+    },
+    "nuerList" : {
+        "summary": "an even newer list of stuff to follow",
+        "follow":  [
+            "http://writefreely.xps/api/collections/qwazix",
+            "http://mixt.qwazix.com/api/collections/qwazix"
+        ]
+    },
+    "ill/egal actor" : { "summary": "an even newer list of stuff to follow",
+        "follow":  [
+            "http://writefreely.xps/api/collections/qwazix",
+            "http://mixt.qwazix.com/api/collections/qwazix"
+        ]
+
+    }
+}

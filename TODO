@@ -43,6 +43,12 @@
 [✔] Check local actor names for characters illegal for filenames and ban them
 [ ] Refactor, comment and clean up
 [✔] Create debug flag
+[ ] Write to following only upon accept
+[✔] Implement webfinger
+[ ] Implement Unfollow
+[ ] Implement accept
+[ ] Implement nodeinfo and statistics
+[ ] Accept even if already follows us
 [ ] Implement Update
 [ ] Implement Delete
 [ ] Handle http signatures

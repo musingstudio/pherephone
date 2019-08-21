@@ -284,6 +284,8 @@ func LoadActor(name string) (Actor, error) {
 		following: jsonData["Following"].(map[string]interface{}),
 		publicKey: publicKey,
 		privateKey: privateKey,
+		publicKeyPem: jsonData["PublicKey"].(string),
+		privateKeyPem: jsonData["PrivateKey"].(string),
 	}
 
 	federating.parent = &actor
@@ -334,9 +336,16 @@ func (a *Actor) Follow(user string) error {
 	// log.Info(follow)
 
 	if _, ok := a.following[user]; !ok {
-		a.following[user] = struct{}{}
-		go a.pubActor.Send(c, iri, follow)
-		a.save()
+		go func(){
+			_, err := a.pubActor.Send(c, iri, follow)
+			if err != nil {
+				log.Info("Couldn't follow " + user)
+				log.Info(err)
+				return
+			}
+			a.following[user] = struct{}{}
+			a.save()
+		}()
 	}
 
 	return nil
