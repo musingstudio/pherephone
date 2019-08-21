@@ -10,6 +10,7 @@ import (
 
 	"github.com/go-fed/activity/pub"
 	"github.com/go-fed/activity/streams/vocab"
+	"github.com/go-fed/activity/streams"
 	// "strings"
 
 	"github.com/gologme/log"
@@ -54,9 +55,36 @@ func (f *federatingBehavior) PostInboxRequestBodyHook(c context.Context, r *http
 		if _, ok := f.parent.followers[newFollower]; ok {
 			log.Info("You're already following us, yay!")
 			// do nothing, they're already following us
-			return
+		} else {
+			f.parent.JotFollowerDown(newFollower)
 		}
-		f.parent.JotFollowerDown(newFollower)
+		// send accept anyway even if they are following us already
+		accept := streams.NewActivityStreamsAccept()
+		sender := streams.NewActivityStreamsActorProperty()
+		to := streams.NewActivityStreamsToProperty()
+		to.AppendIRI(activity.GetActivityStreamsActor().Begin().GetIRI())
+		sender.AppendIRI(f.parent.nuIri)
+		object := streams.NewActivityStreamsObjectProperty()
+		asActivity := streams.NewActivityStreamsActivity()
+		asActivity.SetActivityStreamsActor(activity.GetActivityStreamsActor())
+		asActivity.SetActivityStreamsId(activity.GetActivityStreamsId())
+		asActivity.SetActivityStreamsObject(activity.GetActivityStreamsObject())
+		asActivity.SetActivityStreamsTo(activity.GetActivityStreamsTo())
+		typename := streams.NewActivityStreamsTypeProperty()
+		typename.AppendXMLSchemaString(activity.GetTypeName())
+		asActivity.SetActivityStreamsType(typename)
+		object.AppendActivityStreamsActivity(asActivity)
+		accept.SetActivityStreamsObject(object)
+		accept.SetActivityStreamsActor(sender)
+		id := streams.NewActivityStreamsIdProperty()
+		idIRI, _ := f.db.NewId(c, accept)
+		id.SetIRI(idIRI)
+		accept.SetActivityStreamsId(id)
+		accept.SetActivityStreamsTo(to)
+		
+		// TODO add parent.outbox to avoid building it every time
+		// log.Info(accept.Serialize())
+		go f.parent.pubActor.Send(c, f.parent.GetOutboxIRI() , accept)
 	}
 	return
 }

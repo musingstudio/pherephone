@@ -2,8 +2,7 @@
     "myAwesomeList" : {
         "summary": "a list of favorite writers",
         "follow": [
-            "http://writefreely.xps/api/collections/qwazix",
-            "http://print3d.social/users/qwazix"
+            "http://writefreely.xps/api/collections/qwazix"
         ]
     }
 }

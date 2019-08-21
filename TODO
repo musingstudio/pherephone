@@ -46,11 +46,11 @@
 [ ] Write to following only upon accept
 [✔] Implement webfinger
 [ ] Implement Unfollow
-[ ] Implement accept
+[ ] Implement accept (accept when other follow us)
 [ ] Implement nodeinfo and statistics
 [ ] Accept even if already follows us
-[ ] Implement Update
-[ ] Implement Delete
+[ ] Implement db.Update
+[ ] Implement db.Delete
 [ ] Handle http signatures
 [ ] Make sure we never show <actor>.json to the public
 [ ] Split to pherephone and activityServe

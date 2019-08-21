@@ -153,6 +153,13 @@ func MakeActor(name, summary, actorType, iri string) (Actor, error) {
 	return actor, nil
 }
 
+// GetOutboxIRI returns the outbox iri in net/url
+func (a *Actor) GetOutboxIRI() *url.URL{
+		iri := a.iri+"/outbox"
+		nuiri, _ := url.Parse(iri)
+		return nuiri
+}
+
 // save the actor to file
 func (a *Actor) save() error {
 
