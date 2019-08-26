@@ -10,8 +10,8 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"strings"
 	"strconv"
+	"strings"
 
 	"crypto"
 	"crypto/rand"
@@ -405,7 +405,7 @@ func (a *Actor) Announce(object string) error {
 func (a *Actor) whoAmI() string {
 	return `{"@context":	"https://www.w3.org/ns/activitystreams",
 	"type": "` + a.actorType + `",
-	"id": "` + baseURL + a.name + `/",
+	"id": "` + baseURL + a.name + `",
 	"name": "` + a.name + `",
 	"preferredUsername": "` + a.name + `",
 	"summary": "` + a.summary + `",
@@ -443,19 +443,89 @@ func (a *Actor) getPost(hash string) (post string, err error) {
 // HandleOutbox handles the outbox of our actor. It actually just
 // delegates to go-fed without doing anything in particular.
 func (a *Actor) HandleOutbox(w http.ResponseWriter, r *http.Request) {
-	c := context.Background()
-	if handled, err := a.pubActor.PostOutbox(c, w, r); err != nil {
-		// Write to w
-		return
-	} else if handled {
-		return
-	} else if handled, err = a.pubActor.GetOutbox(c, w, r); err != nil {
-		// Write to w
-		return
-	} else if handled {
-		log.Info("gethandled")
+	// c := context.Background()
+	// if handled, err := a.pubActor.PostOutbox(c, w, r); err != nil {
+	// 	// Write to w
+	// 	return
+	// } else if handled {
+	// 	return
+	// } else if handled, err = a.pubActor.GetOutbox(c, w, r); err != nil {
+	// 	// Write to w
+	// 	return
+	// } else if handled {
+	// 	log.Info("gethandled")
+	// 	return
+	// }
+	w.Header().Set("content-type", "application/activity+json; charset=utf-8")
+	actor, err := LoadActor(a.name) // load the actor from disk
+	if err != nil {                 // either actor requested has illegal characters or
+		log.Info("Can't load local actor") // we don't have such actor
+		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte("404 - page not found"))
 		return
 	}
+	var response []byte
+	page := r.URL.Query().Get("page")
+	if page == "" {
+
+		outboxJSON, err := ioutil.ReadFile(storage + slash + "actors" + slash + a.name + slash + "outbox.json")
+		if err != nil {
+			log.Error("can't read outbox")
+			return
+		}
+		outboxMap := make(map[string]interface{})
+		err = json.Unmarshal(outboxJSON, &outboxMap)
+
+		if err != nil {
+			log.Error("can't unmarshal outbox")
+			return
+		}
+
+		response = []byte(`{
+			"@context" : "https://www.w3.org/ns/activitystreams",
+			"first" : "` + baseURL + actor.name + `/outbox?page=true",
+			"id" : "` + baseURL + actor.name + `/outbox",
+			"last" : "` + baseURL + actor.name + `/outbox?min_id=0&page=true",
+			"totalItems" : ` + strconv.Itoa(len(outboxMap["orderedItems"].([]interface{}))) + `, 
+			"type" : "OrderedCollection"
+			}`)
+	} else if page == "1" {
+		collectionPage := make(map[string]interface{})
+		collectionPage["@context"] = "https://www.w3.org/ns/activitystreams"
+		collectionPage["id"] = baseURL + a.name + "/outbox?page=" + page
+
+		outboxJSON, err := ioutil.ReadFile(storage + slash + "actors" + slash + a.name + slash + "outbox.json")
+		if err != nil {
+			log.Error("can't read outbox")
+			return
+		}
+		outboxMap := make(map[string]interface{})
+		err = json.Unmarshal(outboxJSON, &outboxMap)
+
+		if err != nil {
+			log.Error("can't unmarshal outbox")
+			return
+		}
+
+		items := make([]interface{}, 0, len(outboxMap["orderedItems"].([]interface{})))
+		for _, id := range outboxMap["orderedItems"].([]interface{}) {
+			parts := strings.Split(id.(string), "/")
+			hash := parts[len(parts)-1]
+			activityJSON, err := ioutil.ReadFile(storage + slash + "actors" + slash + a.name + slash + hash + ".json")
+			if err != nil {
+				log.Error("can't read activity")
+				return
+			}
+			var temp map[string]string
+			json.Unmarshal(activityJSON, &temp)
+			items = append(items, temp)
+		}
+		collectionPage["orderedItems"] = items
+		collectionPage["partOf"] = baseURL + a.name + "/outbox"
+		collectionPage["type"] = "OrderedCollectionPage"
+		response, _ = json.Marshal(collectionPage)
+	}
+	w.Write([]byte(response))
 }
 
 // HandleInbox handles the inbox of our actor. It actually just
@@ -484,7 +554,7 @@ func (a *Actor) JotFollowerDown(iri string) error {
 
 // func (a *Actor) savePost()
 
-// GetFollowers returns a list of people that follow us 
+// GetFollowers returns a list of people that follow us
 func (a *Actor) GetFollowers(page int) (response []byte, err error) {
 	if page == 0 {
 		// collection = streams.NewActivityStreamsOrderedCollection()
@@ -497,21 +567,21 @@ func (a *Actor) GetFollowers(page int) (response []byte, err error) {
 
 		response = []byte(`{
 			"@context" : "https://www.w3.org/ns/activitystreams",
-			"first" : "`+baseURL+slash+a.name+`/followers?page=1",
-			"id" : "`+baseURL+slash+a.name+`/followers",
-			"totalItems" : `+strconv.Itoa(len(a.followers))+`,
+			"first" : "` + baseURL + slash + a.name + `/followers?page=1",
+			"id" : "` + baseURL + slash + a.name + `/followers",
+			"totalItems" : ` + strconv.Itoa(len(a.followers)) + `,
 			"type" : "OrderedCollection"
 		 }`)
 	} else if page == 1 { // implement pagination
 		collectionPage := make(map[string]interface{})
 		collectionPage["@context"] = "https://www.w3.org/ns/activitystreams"
-		collectionPage["id"] = baseURL+slash+a.name+"followers?page="+strconv.Itoa(page)
+		collectionPage["id"] = baseURL + slash + a.name + "followers?page=" + strconv.Itoa(page)
 		items := make([]string, 0, len(a.followers))
 		for k := range a.followers {
 			items = append(items, k)
 		}
 		collectionPage["orderedItems"] = items
-		collectionPage["partOf"] = baseURL+slash+a.name+"/followers"
+		collectionPage["partOf"] = baseURL + slash + a.name + "/followers"
 		collectionPage["totalItems"] = len(a.followers)
 		collectionPage["type"] = "OrderedCollectionPage"
 		response, _ = json.Marshal(collectionPage)
@@ -519,26 +589,26 @@ func (a *Actor) GetFollowers(page int) (response []byte, err error) {
 	return
 }
 
-// GetFollowing returns a list of people we follow 
+// GetFollowing returns a list of people we follow
 func (a *Actor) GetFollowing(page int) (response []byte, err error) {
 	if page == 0 {
 		response = []byte(`{
 			"@context" : "https://www.w3.org/ns/activitystreams",
-			"first" : "`+baseURL+slash+a.name+`/following?page=1",
-			"id" : "`+baseURL+slash+a.name+`/following",
-			"totalItems" : `+strconv.Itoa(len(a.following))+`,
+			"first" : "` + baseURL + slash + a.name + `/following?page=1",
+			"id" : "` + baseURL + slash + a.name + `/following",
+			"totalItems" : ` + strconv.Itoa(len(a.following)) + `,
 			"type" : "OrderedCollection"
 		 }`)
 	} else if page == 1 { // implement pagination
 		collectionPage := make(map[string]interface{})
 		collectionPage["@context"] = "https://www.w3.org/ns/activitystreams"
-		collectionPage["id"] = baseURL+slash+a.name+"following?page="+strconv.Itoa(page)
+		collectionPage["id"] = baseURL + slash + a.name + "following?page=" + strconv.Itoa(page)
 		items := make([]string, 0, len(a.following))
 		for k := range a.following {
 			items = append(items, k)
 		}
 		collectionPage["orderedItems"] = items
-		collectionPage["partOf"] = baseURL+slash+a.name+"/following"
+		collectionPage["partOf"] = baseURL + slash + a.name + "/following"
 		collectionPage["totalItems"] = len(a.following)
 		collectionPage["type"] = "OrderedCollectionPage"
 		response, _ = json.Marshal(collectionPage)

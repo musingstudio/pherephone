@@ -10,6 +10,15 @@
     "myAwesomeList2" : {
         "summary": "a list of favorite writers",
         "follow": [
+            "http://writefreely.xps/api/collections/qwazix",
+            "https://fosstodon.org/users/qwazix",
+            "https://pixelfed.social/users/qwazix",
+            "https://mixt.qwazix.com/api/collections/qwazix"
+        ]
+    },
+    "myAwesomeList3" : {
+        "summary": "a list of favorite writers",
+        "follow": [
             "http://writefreely.xps/api/collections/qwazix"
         ]
     }

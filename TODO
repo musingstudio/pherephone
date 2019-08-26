@@ -45,9 +45,11 @@
 [✔] Write to following only upon accept
     (waiting to actually get an accept so that I can test this)
 [✔] Implement webfinger
-[ ] Make sure masto finds signature
-[ ] Implement Unfollow
-[~] Implement accept (accept when other follow us)
+[✔] Fix outbox json to look like the other softwares
+[✔] Make sure masto finds signature
+[ ] Implement Unfollow 
+[ ] Implement accepting others unfollowing us
+[✔] Implement accept (accept when other follow us)
     (done but can't test it pending http signatures)
     Works in pleroma/pixelfed not working on masto
     (nothing works on masto)
@@ -56,10 +58,12 @@
 [ ] Implement db.Update
 [ ] Implement db.Delete
 [ ] Handle paging
-[~] Handle http signatures
+[✔] Handle http signatures
     masto can't find the signature
 [ ] Verify http signatures
-[ ] Why doesn't our outbox being fetched by others?
+[𐄂] Why doesn't our outbox being fetched by others
+    Possibly this is okay, only the things with them as receipients show
+[ ] Fix outbox to not include follows maybe?
 [ ] Refactor, comment and clean up
 [ ] Make sure we never show <actor>.json to the public
 [ ] Split to pherephone and activityServe
@@ -73,3 +77,5 @@
 [ ] Maybe look at implementing lock files?
 [𐄂] Check if it's worth it to reuse pubActor instead of creating
     a new one every time
+[ ] There are three different styles of building activities, using vocab, strings, or maps. Choose one and stick with it.
+[ ] Implement following by mention

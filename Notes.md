@@ -228,3 +228,5 @@ to return whether we did handle the request
 ##  invalid character '<' looking for beginning of value
 
 ## We have to add to our followers only if we get an accept back because some return 200 even if they don't accept
+
+## Mastodon chokes with a trailing slash in the actor id
