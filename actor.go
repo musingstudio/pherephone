@@ -11,6 +11,7 @@ import (
 	"net/url"
 	"os"
 	"strings"
+	"strconv"
 
 	"crypto"
 	"crypto/rand"
@@ -19,6 +20,7 @@ import (
 	"encoding/pem"
 
 	"github.com/go-fed/activity/streams"
+	// "github.com/go-fed/activity/streams/vocab"
 
 	"github.com/go-fed/activity/pub"
 	"github.com/gologme/log"
@@ -407,11 +409,11 @@ func (a *Actor) whoAmI() string {
 	"name": "` + a.name + `",
 	"preferredUsername": "` + a.name + `",
 	"summary": "` + a.summary + `",
-	"inbox": "` + baseURL + a.name + `/inbox/",
-	"outbox": "` + baseURL + a.name + `/outbox/",
-	"followers": "` + baseURL + a.name + `/followers/",
-	"following": "` + baseURL + a.name + `/following/",
-	"liked": "` + baseURL + a.name + `/liked/",
+	"inbox": "` + baseURL + a.name + `/inbox",
+	"outbox": "` + baseURL + a.name + `/outbox",
+	"followers": "` + baseURL + a.name + `/followers",
+	"following": "` + baseURL + a.name + `/following",
+	"liked": "` + baseURL + a.name + `/liked",
 	"publicKey": {
 		"id": "` + baseURL + a.name + `#main-key",
 		"owner": "` + baseURL + a.name + `",
@@ -481,3 +483,65 @@ func (a *Actor) JotFollowerDown(iri string) error {
 }
 
 // func (a *Actor) savePost()
+
+// GetFollowers returns a list of people that follow us 
+func (a *Actor) GetFollowers(page int) (response []byte, err error) {
+	if page == 0 {
+		// collection = streams.NewActivityStreamsOrderedCollection()
+		// totalItems := streams.NewActivityStreamsTotalItemsProperty()
+		// totalItems.Set(len(a.followers))
+		// collection.SetActivityStreamsTotalItems(totalItems)
+		// first := streams.NewActivityStreamsFirstProperty()
+		// firstIRI := url.Parse()
+		// first.SetIRI()
+
+		response = []byte(`{
+			"@context" : "https://www.w3.org/ns/activitystreams",
+			"first" : "`+baseURL+slash+a.name+`/followers?page=1",
+			"id" : "`+baseURL+slash+a.name+`/followers",
+			"totalItems" : `+strconv.Itoa(len(a.followers))+`,
+			"type" : "OrderedCollection"
+		 }`)
+	} else if page == 1 { // implement pagination
+		collectionPage := make(map[string]interface{})
+		collectionPage["@context"] = "https://www.w3.org/ns/activitystreams"
+		collectionPage["id"] = baseURL+slash+a.name+"followers?page="+strconv.Itoa(page)
+		items := make([]string, 0, len(a.followers))
+		for k := range a.followers {
+			items = append(items, k)
+		}
+		collectionPage["orderedItems"] = items
+		collectionPage["partOf"] = baseURL+slash+a.name+"/followers"
+		collectionPage["totalItems"] = len(a.followers)
+		collectionPage["type"] = "OrderedCollectionPage"
+		response, _ = json.Marshal(collectionPage)
+	}
+	return
+}
+
+// GetFollowing returns a list of people we follow 
+func (a *Actor) GetFollowing(page int) (response []byte, err error) {
+	if page == 0 {
+		response = []byte(`{
+			"@context" : "https://www.w3.org/ns/activitystreams",
+			"first" : "`+baseURL+slash+a.name+`/following?page=1",
+			"id" : "`+baseURL+slash+a.name+`/following",
+			"totalItems" : `+strconv.Itoa(len(a.following))+`,
+			"type" : "OrderedCollection"
+		 }`)
+	} else if page == 1 { // implement pagination
+		collectionPage := make(map[string]interface{})
+		collectionPage["@context"] = "https://www.w3.org/ns/activitystreams"
+		collectionPage["id"] = baseURL+slash+a.name+"following?page="+strconv.Itoa(page)
+		items := make([]string, 0, len(a.following))
+		for k := range a.following {
+			items = append(items, k)
+		}
+		collectionPage["orderedItems"] = items
+		collectionPage["partOf"] = baseURL+slash+a.name+"/following"
+		collectionPage["totalItems"] = len(a.following)
+		collectionPage["type"] = "OrderedCollectionPage"
+		response, _ = json.Marshal(collectionPage)
+	}
+	return
+}

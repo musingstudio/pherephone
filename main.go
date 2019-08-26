@@ -6,6 +6,7 @@ import (
 	"flag"
 	"os"
 	"strings"
+	"strconv"
 
 	// "errors"
 
@@ -184,6 +185,46 @@ func main() {
 		fmt.Fprintf(w, post)
 	}
 
+	var followersHandler http.HandlerFunc = func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("content-type", "application/activity+json; charset=utf-8")
+		username := mux.Vars(r)["actor"]
+		actor, err := LoadActor(username)
+		// error out if this actor does not exist
+		if err != nil {
+			log.Info("Can't create local actor")
+			return
+		}
+		var page int
+		pageS := r.URL.Query().Get("page")
+		if pageS == "" {
+			page = 0
+		} else {
+			page, _ = strconv.Atoi(pageS)
+		}
+		response, _ := actor.GetFollowers(page)
+		w.Write(response)
+	}
+
+	var followingHandler http.HandlerFunc = func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("content-type", "application/activity+json; charset=utf-8")
+		username := mux.Vars(r)["actor"]
+		actor, err := LoadActor(username)
+		// error out if this actor does not exist
+		if err != nil {
+			log.Info("Can't create local actor")
+			return
+		}
+		var page int
+		pageS := r.URL.Query().Get("page")
+		if pageS == "" {
+			page = 0
+		} else {
+			page, _ = strconv.Atoi(pageS)
+		}
+		response, _ := actor.GetFollowing(page)
+		w.Write(response)
+	}
+
 	var webfingerHandler http.HandlerFunc = func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("content-type", "application/jrd+json; charset=utf-8")
 		account := r.URL.Query().Get("resource")              // should be something like acct:user@example.com
@@ -219,8 +260,13 @@ func main() {
 	gorilla := mux.NewRouter()
 	gorilla.HandleFunc("/.well-known/webfinger", webfingerHandler)
 	gorilla.HandleFunc("/{actor}/outbox", outboxHandler)
+	gorilla.HandleFunc("/{actor}/outbox/", outboxHandler)
 	gorilla.HandleFunc("/{actor}/inbox", inboxHandler)
 	gorilla.HandleFunc("/{actor}/inbox/", inboxHandler)
+	gorilla.HandleFunc("/{actor}/followers", followersHandler)
+	gorilla.HandleFunc("/{actor}/followers/", followersHandler)
+	gorilla.HandleFunc("/{actor}/following", followingHandler)
+	gorilla.HandleFunc("/{actor}/following/", followingHandler)
 	gorilla.HandleFunc("/{actor}", actorHandler)
 	gorilla.HandleFunc("/{actor}/", actorHandler)
 	gorilla.HandleFunc("/{actor}/post/{hash}", postHandler)

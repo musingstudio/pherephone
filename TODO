@@ -55,6 +55,7 @@
 [✔] Accept even if already follows us
 [ ] Implement db.Update
 [ ] Implement db.Delete
+[ ] Handle paging
 [~] Handle http signatures
     masto can't find the signature
 [ ] Verify http signatures
@@ -67,7 +68,7 @@
     [ ] Leave them read-only?
     [ ] Leave them as is?
 [ ] Check if an early failure in announcing posts causes a problem to the following ones
-[ ] Handle followers and following uri's
+[✔] Handle followers and following uri's
 [ ] Do I care about the inbox?
 [ ] Maybe look at implementing lock files?
 [𐄂] Check if it's worth it to reuse pubActor instead of creating

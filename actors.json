@@ -2,6 +2,14 @@
     "myAwesomeList1" : {
         "summary": "a list of favorite writers",
         "follow": [
+            "http://writefreely.xps/api/collections/qwazix",
+            "https://pixelfed.social/users/qwazix"
+
+        ]
+    },
+    "myAwesomeList2" : {
+        "summary": "a list of favorite writers",
+        "follow": [
             "http://writefreely.xps/api/collections/qwazix"
         ]
     }

@@ -94,7 +94,7 @@ func (f *federatingBehavior) PostInboxRequestBodyHook(c context.Context, r *http
 		// log.Info(serializedFollowMap["actor"])
 		// actor := follow.GetActivityStreamsActor()
 		// acceptorIRI := acceptor.Begin().GetIRI()
-		// log.Info(acceptorIRI.String())
+		// log.Info(acceptorIRI.String())HandleInbox
 		f.parent.following[acceptor.Begin().GetIRI().String()] = struct{}{}
 		f.parent.save()
 	}

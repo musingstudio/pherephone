@@ -289,23 +289,32 @@ func (d *database) SetOutbox(c context.Context, outbox vocab.ActivityStreamsOrde
 
 // Followers reads <actor>.json and returns the followers in a Collection
 func (d *database) Followers(c context.Context, actorIRI *url.URL) (followers vocab.ActivityStreamsCollection, err error) {
+	// ocp := streams.NewActivityStreamsOrderedCollectionPage()
+	followers = streams.NewActivityStreamsCollection()
 	items := streams.NewActivityStreamsItemsProperty()
 	for follower := range d.grandparent.followers {
 		iri, _ := url.Parse(follower)
 		items.AppendIRI(iri)
 	}
 	followers.SetActivityStreamsItems(items)
+	totalItems := streams.NewActivityStreamsTotalItemsProperty()
+	totalItems.Set(len(d.grandparent.followers))
+	followers.SetActivityStreamsTotalItems(totalItems)
 	return
 }
 
 // Following reads <actor>.json and returns the actors we are following in a Collection
-func (d *database) Following(c context.Context, actorIRI *url.URL) (followers vocab.ActivityStreamsCollection, err error) {
+func (d *database) Following(c context.Context, actorIRI *url.URL) (following vocab.ActivityStreamsCollection, err error) {
+	following = streams.NewActivityStreamsCollection()
 	items := streams.NewActivityStreamsItemsProperty()
 	for following := range d.grandparent.following {
 		iri, _ := url.Parse(following)
 		items.AppendIRI(iri)
 	}
-	followers.SetActivityStreamsItems(items)
+	following.SetActivityStreamsItems(items)
+	totalItems := streams.NewActivityStreamsTotalItemsProperty()
+	totalItems.Set(len(d.grandparent.following))
+	following.SetActivityStreamsTotalItems(totalItems)
 	return
 }
 
