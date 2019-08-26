@@ -120,6 +120,7 @@ func main() {
 		}
 	}
 	var inboxHandler http.HandlerFunc = func(w http.ResponseWriter, r *http.Request) {
+		log.Info(r.Header)
 		w.Header().Set("content-type", "application/activity+json; charset=utf-8")
 		// Populate c with request-specific information
 		username := mux.Vars(r)["actor"]

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io/ioutil"
+
 	// "log"
 	"net/http"
 	"net/url"
@@ -21,7 +22,6 @@ import (
 
 	"github.com/go-fed/activity/pub"
 	"github.com/gologme/log"
-
 )
 
 var slash = string(os.PathSeparator)
@@ -34,10 +34,10 @@ type Actor struct {
 	nuIri                         *url.URL
 	followers, following          map[string]interface{}
 	posts                         map[int]map[string]string
-	publicKey					  crypto.PublicKey
-	privateKey					  crypto.PrivateKey
-	publicKeyPem				  string
-	privateKeyPem				  string
+	publicKey                     crypto.PublicKey
+	privateKey                    crypto.PrivateKey
+	publicKeyPem                  string
+	privateKeyPem                 string
 }
 
 // ActorToSave is a stripped down actor representation
@@ -46,7 +46,7 @@ type Actor struct {
 // see https://stackoverflow.com/questions/26327391/json-marshalstruct-returns
 type ActorToSave struct {
 	Name, Summary, ActorType, IRI, PublicKey, PrivateKey string
-	Followers, Following          			 			 map[string]interface{}
+	Followers, Following                                 map[string]interface{}
 }
 
 func newPubActor() (pub.FederatingActor, *commonBehavior, *federatingBehavior, *database) {
@@ -154,10 +154,10 @@ func MakeActor(name, summary, actorType, iri string) (Actor, error) {
 }
 
 // GetOutboxIRI returns the outbox iri in net/url
-func (a *Actor) GetOutboxIRI() *url.URL{
-		iri := a.iri+"/outbox"
-		nuiri, _ := url.Parse(iri)
-		return nuiri
+func (a *Actor) GetOutboxIRI() *url.URL {
+	iri := a.iri + "/outbox"
+	nuiri, _ := url.Parse(iri)
+	return nuiri
 }
 
 // save the actor to file
@@ -182,7 +182,7 @@ func (a *Actor) save() error {
 		Followers:  a.followers,
 		Following:  a.following,
 		PublicKey:  a.publicKeyPem,
-		PrivateKey: a.privateKeyPem, 
+		PrivateKey: a.privateKeyPem,
 	}
 
 	actorJSON, err := json.MarshalIndent(actorToSave, "", "\t")
@@ -258,40 +258,40 @@ func LoadActor(name string) (Actor, error) {
 	// privateKeyNewLines := strings.ReplaceAll(jsonData["PrivateKey"].(string), "\\n", "\n")
 
 	publicKeyDecoded, rest := pem.Decode([]byte(jsonData["PublicKey"].(string)))
-	if publicKeyDecoded == nil{
+	if publicKeyDecoded == nil {
 		log.Info(rest)
 		panic("failed to parse PEM block containing the public key")
 	}
 	publicKey, err := x509.ParsePKIXPublicKey(publicKeyDecoded.Bytes)
-	if err != nil{
+	if err != nil {
 		log.Info("Can't parse public keys")
 		log.Info(err)
-		return Actor {}, err
+		return Actor{}, err
 	}
 	privateKeyDecoded, rest := pem.Decode([]byte(jsonData["PrivateKey"].(string)))
-	if privateKeyDecoded == nil{
+	if privateKeyDecoded == nil {
 		log.Info(rest)
 		panic("failed to parse PEM block containing the private key")
 	}
 	privateKey, err := x509.ParsePKCS1PrivateKey(privateKeyDecoded.Bytes)
-	if err != nil{
+	if err != nil {
 		log.Info("Can't parse private keys")
 		log.Info(err)
-		return Actor {}, err
+		return Actor{}, err
 	}
 
 	actor := Actor{
-		pubActor:  pubActor,
-		name:      name,
-		summary:   jsonData["Summary"].(string),
-		actorType: jsonData["ActorType"].(string),
-		iri:       jsonData["IRI"].(string),
-		nuIri:     nuIri,
-		followers: jsonData["Followers"].(map[string]interface{}),
-		following: jsonData["Following"].(map[string]interface{}),
-		publicKey: publicKey,
-		privateKey: privateKey,
-		publicKeyPem: jsonData["PublicKey"].(string),
+		pubActor:      pubActor,
+		name:          name,
+		summary:       jsonData["Summary"].(string),
+		actorType:     jsonData["ActorType"].(string),
+		iri:           jsonData["IRI"].(string),
+		nuIri:         nuIri,
+		followers:     jsonData["Followers"].(map[string]interface{}),
+		following:     jsonData["Following"].(map[string]interface{}),
+		publicKey:     publicKey,
+		privateKey:    privateKey,
+		publicKeyPem:  jsonData["PublicKey"].(string),
 		privateKeyPem: jsonData["PrivateKey"].(string),
 	}
 
@@ -343,15 +343,17 @@ func (a *Actor) Follow(user string) error {
 	// log.Info(follow)
 
 	if _, ok := a.following[user]; !ok {
-		go func(){
+		go func() {
 			_, err := a.pubActor.Send(c, iri, follow)
 			if err != nil {
 				log.Info("Couldn't follow " + user)
 				log.Info(err)
 				return
 			}
-			a.following[user] = struct{}{}
-			a.save()
+			// we are going to save only on accept
+
+			// a.following[user] = struct{}{}
+			// a.save()
 		}()
 	}
 
@@ -413,7 +415,7 @@ func (a *Actor) whoAmI() string {
 	"publicKey": {
 		"id": "` + baseURL + a.name + `#main-key",
 		"owner": "` + baseURL + a.name + `",
-		"publicKeyPem": "` + strings.ReplaceAll(a.publicKeyPem,"\n","\\n") + `"
+		"publicKeyPem": "` + strings.ReplaceAll(a.publicKeyPem, "\n", "\\n") + `"
 	  }
 	}`
 }

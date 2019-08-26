@@ -223,4 +223,8 @@ to return whether we did handle the request
 
 ## The idea of <actor>.json and actor.json is confusing
 
-## go-fed needs a to!
+## go-fed needs a to! to send activities. Otherwise it just does nothing
+
+##  invalid character '<' looking for beginning of value
+
+## We have to add to our followers only if we get an accept back because some return 200 even if they don't accept

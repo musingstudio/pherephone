@@ -16,7 +16,8 @@
         "summary": "a new list of fedi-friends",
         "follow":  [
             "http://mastodon.social/users/qwazix",
-            "http://cybre.space/users/qwazix"
+            "http://cybre.space/users/qwazix",
+            "https://iscute.moe/qwazix"
         ]
     },
     "nuerList" : {
@@ -34,3 +35,8 @@
 
     }
 }
+
+"http://print3d.social/users/qwazix",
+"https://mastodon.social/users/qwazix",
+"https://cybre.space/users/qwazix",
+"https://iscute.moe/users/qwazix"

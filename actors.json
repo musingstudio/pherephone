@@ -1,5 +1,5 @@
 {
-    "myAwesomeList" : {
+    "myAwesomeList1" : {
         "summary": "a list of favorite writers",
         "follow": [
             "http://writefreely.xps/api/collections/qwazix"

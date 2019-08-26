@@ -41,17 +41,25 @@
 [✔] Sanitize input, never allow slashes or dots
 [✔] Add summary to actors.json
 [✔] Check local actor names for characters illegal for filenames and ban them
-[ ] Refactor, comment and clean up
 [✔] Create debug flag
-[ ] Write to following only upon accept
+[✔] Write to following only upon accept
+    (waiting to actually get an accept so that I can test this)
 [✔] Implement webfinger
+[ ] Make sure masto finds signature
 [ ] Implement Unfollow
-[ ] Implement accept (accept when other follow us)
+[~] Implement accept (accept when other follow us)
+    (done but can't test it pending http signatures)
+    Works in pleroma/pixelfed not working on masto
+    (nothing works on masto)
 [ ] Implement nodeinfo and statistics
-[ ] Accept even if already follows us
+[✔] Accept even if already follows us
 [ ] Implement db.Update
 [ ] Implement db.Delete
-[ ] Handle http signatures
+[~] Handle http signatures
+    masto can't find the signature
+[ ] Verify http signatures
+[ ] Why doesn't our outbox being fetched by others?
+[ ] Refactor, comment and clean up
 [ ] Make sure we never show <actor>.json to the public
 [ ] Split to pherephone and activityServe
 [ ] Decide what's to be done with actors removed from `actors.json`.

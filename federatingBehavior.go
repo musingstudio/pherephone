@@ -85,6 +85,18 @@ func (f *federatingBehavior) PostInboxRequestBodyHook(c context.Context, r *http
 		// TODO add parent.outbox to avoid building it every time
 		// log.Info(accept.Serialize())
 		go f.parent.pubActor.Send(c, f.parent.GetOutboxIRI() , accept)
+	} else if activity.GetTypeName() == "Accept" {
+		acceptor := activity.GetActivityStreamsActor()
+		// follow := activity.GetActivityStreamsObject()//.(vocab.ActivityStreamsFollow)
+		// log.Info("====================sdfsfasda=================")
+		// serializedFollow, _ := follow.Serialize()
+		// serializedFollowMap := serializedFollow.(map[string]interface{})
+		// log.Info(serializedFollowMap["actor"])
+		// actor := follow.GetActivityStreamsActor()
+		// acceptorIRI := acceptor.Begin().GetIRI()
+		// log.Info(acceptorIRI.String())
+		f.parent.following[acceptor.Begin().GetIRI().String()] = struct{}{}
+		f.parent.save()
 	}
 	return
 }
