@@ -164,6 +164,7 @@ func main() {
 		log.Info(r.RemoteAddr)
 		log.Info(r.Body)
 		log.Info(r.Header)
+		// log.Info(actor.whoAmI())
 	}
 
 	var postHandler http.HandlerFunc = func(w http.ResponseWriter, r *http.Request) {
@@ -309,6 +310,7 @@ func main() {
 			log.Info(followee)
 			followerActor.Follow(followee.(string))
 		}
+		
 	}
 	log.Fatal(http.ListenAndServe(":8081", nil))
 }

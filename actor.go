@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io/ioutil"
+	"time"
 
 	// "log"
 	"net/http"
@@ -342,8 +343,8 @@ func (a *Actor) Follow(user string) error {
 
 	// log.Info(c)
 	// log.Info(iri)
-	// log.Info(follow)
-
+	log.Info(follow.Serialize())
+	
 	if _, ok := a.following[user]; !ok {
 		go func() {
 			_, err := a.pubActor.Send(c, iri, follow)
@@ -392,8 +393,12 @@ func (a *Actor) Announce(object string) error {
 		}
 	}
 
+	publishedProperty := streams.NewActivityStreamsPublishedProperty()
+	publishedProperty.Set(time.Now())
+
 	announce.SetActivityStreamsActor(actorProperty)
 	announce.SetActivityStreamsObject(objectProperty)
+	announce.SetActivityStreamsPublished(publishedProperty)
 	announce.SetActivityStreamsCc(cc)
 	announce.SetActivityStreamsTo(to)
 
