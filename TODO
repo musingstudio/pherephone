@@ -79,4 +79,7 @@
     a new one every time
 [ ] There are three different styles of building activities, using vocab, strings, or maps. Choose one and stick with it.
 [ ] Implement following by mention
+    (check signature and add an admin id in the config. Mentions from that account should be allowed to admin stuff)
 [ ] If they reject you, don't try again
+[ ] Change the following from map[string]interface{} to map[string]string
+[ ] Fix Announce activities to be shown at their endpoint instead of 404

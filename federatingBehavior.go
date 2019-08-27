@@ -4,14 +4,16 @@ import (
 	// "github.com/go-fed/activity/streams"
 	"context"
 	"errors"
+
 	// "log"
 	"net/http"
 	"net/url"
 
+	"strings"
+
 	"github.com/go-fed/activity/pub"
-	"github.com/go-fed/activity/streams/vocab"
 	"github.com/go-fed/activity/streams"
-	// "strings"
+	"github.com/go-fed/activity/streams/vocab"
 
 	"github.com/gologme/log"
 )
@@ -33,7 +35,7 @@ func (f *federatingBehavior) PostInboxRequestBodyHook(c context.Context, r *http
 	if activity.GetTypeName() == "Create" {
 		object := activity.GetActivityStreamsObject()
 		// check if we are following the author. If we don't
-		// it means that we relay whatever comes in and we might be 
+		// it means that we relay whatever comes in and we might be
 		// a vehicle for spam
 		author := activity.GetActivityStreamsActor().Begin().GetIRI().String()
 		// check if we are following this actor and if not bail out
@@ -81,10 +83,10 @@ func (f *federatingBehavior) PostInboxRequestBodyHook(c context.Context, r *http
 		id.SetIRI(idIRI)
 		accept.SetActivityStreamsId(id)
 		accept.SetActivityStreamsTo(to)
-		
+
 		// TODO add parent.outbox to avoid building it every time
 		// log.Info(accept.Serialize())
-		go f.parent.pubActor.Send(c, f.parent.GetOutboxIRI() , accept)
+		go f.parent.pubActor.Send(c, f.parent.GetOutboxIRI(), accept)
 	} else if activity.GetTypeName() == "Accept" {
 		acceptor := activity.GetActivityStreamsActor()
 		// follow := activity.GetActivityStreamsObject()//.(vocab.ActivityStreamsFollow)
@@ -95,7 +97,9 @@ func (f *federatingBehavior) PostInboxRequestBodyHook(c context.Context, r *http
 		// actor := follow.GetActivityStreamsActor()
 		// acceptorIRI := acceptor.Begin().GetIRI()
 		// log.Info(acceptorIRI.String())HandleInbox
-		f.parent.following[acceptor.Begin().GetIRI().String()] = struct{}{}
+		object, _ := activity.GetActivityStreamsObject().Serialize()
+		obj := object.(map[string]interface{})
+		f.parent.following[acceptor.Begin().GetIRI().String()] = strings.Replace(obj["id"].(string), baseURL+f.parent.name+"/", "", 1)
 		f.parent.save()
 	}
 	return

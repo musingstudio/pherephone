@@ -317,7 +317,7 @@ func (a *Actor) getFollowActivity(user string) (follow vocab.ActivityStreamsFoll
 		log.Info("something is wrong when parsing the remote" +
 			"actors iri into a url")
 		log.Info(err)
-		return 
+		return
 	}
 	to.AppendIRI(iri)
 	object.AppendIRI(iri)
@@ -328,7 +328,7 @@ func (a *Actor) getFollowActivity(user string) (follow vocab.ActivityStreamsFoll
 		log.Info("something is wrong when parsing the local" +
 			"actors iri into a url")
 		log.Info(err)
-		return 
+		return
 	}
 	actorProperty.AppendIRI(iri)
 	follow.SetActivityStreamsObject(object)
@@ -341,7 +341,7 @@ func (a *Actor) getFollowActivity(user string) (follow vocab.ActivityStreamsFoll
 	// log.Info(c)
 	// log.Info(iri)
 	// log.Info(follow.Serialize())
-	return 
+	return
 }
 
 // Follow a remote user by their iri
@@ -383,10 +383,14 @@ func (a *Actor) Follow(user string) error {
 func (a *Actor) Unfollow(user string) {
 	c := context.Background()
 	log.Info("Unfollowing " + user)
-	
+
 	undo := streams.NewActivityStreamsUndo()
 	actor := streams.NewActivityStreamsActorProperty()
 	object := streams.NewActivityStreamsObjectProperty()
+	id := streams.NewActivityStreamsIdProperty()
+	hash := a.following[user].(string)
+	idiri, _ := url.Parse(baseURL + a.name + "/" + hash)
+	id.Set(idiri)
 	actor.AppendIRI(a.nuIri)
 	followActivity, err := a.getFollowActivity(user)
 	if err != nil {
@@ -396,17 +400,17 @@ func (a *Actor) Unfollow(user string) {
 	object.AppendActivityStreamsFollow(followActivity)
 	undo.SetActivityStreamsObject(object)
 
-	if _, ok := a.following[user]; !ok {
+	// only if we're already following them
+	if _, ok := a.following[user]; ok {
 		go func() {
 			_, err := a.pubActor.Send(c, a.GetOutboxIRI(), undo)
 			if err != nil {
-				log.Info("Couldn't follow " + user)
+				log.Info("Couldn't unfollow " + user)
 				log.Info(err)
 				return
-			} else {
-				delete(a.following, user)
-				a.save()
 			}
+			delete(a.following, user)
+			a.save()
 		}()
 	}
 }
