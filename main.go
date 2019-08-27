@@ -310,7 +310,20 @@ func main() {
 			log.Info(followee)
 			followerActor.Follow(followee.(string))
 		}
-		
+		// Iterate over the current following users and if anybody doesn't exist
+		// in the users to follow list unfollow them
+		for following := range followerActor.following{
+			exists := false;
+			for _, followee := range followees {
+				if followee.(string) == following {
+					exists = true;
+					break
+				}
+			}
+			if exists == false {
+				followerActor.Unfollow(following)
+			}
+		}
 	}
 	log.Fatal(http.ListenAndServe(":8081", nil))
 }

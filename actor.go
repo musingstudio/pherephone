@@ -21,7 +21,7 @@ import (
 	"encoding/pem"
 
 	"github.com/go-fed/activity/streams"
-	// "github.com/go-fed/activity/streams/vocab"
+	"github.com/go-fed/activity/streams/vocab"
 
 	"github.com/go-fed/activity/pub"
 	"github.com/gologme/log"
@@ -305,22 +305,19 @@ func LoadActor(name string) (Actor, error) {
 	return actor, nil
 }
 
-// Follow a remote user by their iri
-// TODO: check if we are already following them
-func (a *Actor) Follow(user string) error {
-	c := context.Background()
-
-	follow := streams.NewActivityStreamsFollow()
+// This is to be reused because unfollowing just wraps
+// The follow activity with an Undo activity
+func (a *Actor) getFollowActivity(user string) (follow vocab.ActivityStreamsFollow, err error) {
+	follow = streams.NewActivityStreamsFollow()
 	object := streams.NewActivityStreamsObjectProperty()
 	to := streams.NewActivityStreamsToProperty()
 	actorProperty := streams.NewActivityStreamsActorProperty()
 	iri, err := url.Parse(user)
-	// iri, err := url.Parse("https://print3d.social/users/qwazix/outbox")
 	if err != nil {
 		log.Info("something is wrong when parsing the remote" +
 			"actors iri into a url")
 		log.Info(err)
-		return err
+		return 
 	}
 	to.AppendIRI(iri)
 	object.AppendIRI(iri)
@@ -331,7 +328,7 @@ func (a *Actor) Follow(user string) error {
 		log.Info("something is wrong when parsing the local" +
 			"actors iri into a url")
 		log.Info(err)
-		return err
+		return 
 	}
 	actorProperty.AppendIRI(iri)
 	follow.SetActivityStreamsObject(object)
@@ -343,24 +340,75 @@ func (a *Actor) Follow(user string) error {
 
 	// log.Info(c)
 	// log.Info(iri)
-	log.Info(follow.Serialize())
-	
+	// log.Info(follow.Serialize())
+	return 
+}
+
+// Follow a remote user by their iri
+// TODO: check if we are already following them
+func (a *Actor) Follow(user string) error {
+	c := context.Background()
+
+	follow, err := a.getFollowActivity(user)
+
+	if err != nil {
+		log.Error("Cannot create follow activity")
+		return err
+	}
+
+	// iri, err := url.Parse(user)
+	// if err != nil {
+	// 	log.Info("something is wrong when parsing the remote" +
+	// 		"actors iri into a url")
+	// 	log.Info(err)
+	// 	return err
+	// }
+
 	if _, ok := a.following[user]; !ok {
 		go func() {
-			_, err := a.pubActor.Send(c, iri, follow)
+			_, err := a.pubActor.Send(c, a.GetOutboxIRI(), follow)
 			if err != nil {
 				log.Info("Couldn't follow " + user)
 				log.Info(err)
 				return
 			}
 			// we are going to save only on accept
-
-			// a.following[user] = struct{}{}
-			// a.save()
 		}()
 	}
 
 	return nil
+}
+
+// Unfollow the user declared by the iri
+func (a *Actor) Unfollow(user string) {
+	c := context.Background()
+	log.Info("Unfollowing " + user)
+	
+	undo := streams.NewActivityStreamsUndo()
+	actor := streams.NewActivityStreamsActorProperty()
+	object := streams.NewActivityStreamsObjectProperty()
+	actor.AppendIRI(a.nuIri)
+	followActivity, err := a.getFollowActivity(user)
+	if err != nil {
+		log.Error("Cannot create follow activity")
+		return
+	}
+	object.AppendActivityStreamsFollow(followActivity)
+	undo.SetActivityStreamsObject(object)
+
+	if _, ok := a.following[user]; !ok {
+		go func() {
+			_, err := a.pubActor.Send(c, a.GetOutboxIRI(), undo)
+			if err != nil {
+				log.Info("Couldn't follow " + user)
+				log.Info(err)
+				return
+			} else {
+				delete(a.following, user)
+				a.save()
+			}
+		}()
+	}
 }
 
 // Announce sends an announcement (boost) to the object
@@ -536,6 +584,8 @@ func (a *Actor) HandleOutbox(w http.ResponseWriter, r *http.Request) {
 // HandleInbox handles the inbox of our actor. It actually just
 // delegates to go-fed without doing anything in particular.
 func (a *Actor) HandleInbox(w http.ResponseWriter, r *http.Request) {
+	// body,_ := ioutil.ReadAll(r.Body)
+	// log.Info(string(body))
 	c := context.Background()
 	if handled, err := a.pubActor.PostInbox(c, w, r); err != nil {
 		log.Info(err)
