@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 	"time"
 
-	// "log"
 	"net/http"
 	"net/url"
 	"os"
@@ -30,7 +29,8 @@ import (
 var slash = string(os.PathSeparator)
 
 // Actor represents a local actor we can act on
-// behalf of.
+// behalf of. This contains a PubActor which is
+// an instance of the FederatingActor go-fed interface
 type Actor struct {
 	name, summary, actorType, iri string
 	pubActor                      pub.FederatingActor
@@ -52,6 +52,7 @@ type ActorToSave struct {
 	Followers, Following                                 map[string]interface{}
 }
 
+// newPubActor constructs a go-fed federating actor with all the required components
 func newPubActor() (pub.FederatingActor, *commonBehavior, *federatingBehavior, *database) {
 	var clock *clock
 	var err error
@@ -71,39 +72,25 @@ func newPubActor() (pub.FederatingActor, *commonBehavior, *federatingBehavior, *
 	return pubActor, common, federating, db
 }
 
-// // set up and return a pubActor object for our actor
-// func (a *Actor) getPubActor() pub.FederatingActor{
-// 	// if we already have one return it
-// 	if a.pubActor != nil {
-// 		return a.pubActor
-// 	} // else make a new one
-// 	// := cannot mix assingment with declaration so
-// 	// I either had to make an extra variable and then
-// 	// assign a.pubActor to pubActor or declare the behaviors
-// 	// beforehand. I chose the latter
-// 	var common *commonBehavior
-// 	var federating *federatingBehavior
-// 	a.pubActor, common, federating = newPubActor()
-// 	// assign our actor pointer to be the parent of
-// 	// these two behaviors so that afterwards in e.g.
-// 	// GetInbox we can know which actor we are talking
-// 	// about
-// 	federating.parent = a
-// 	common.parent = a
-// 	return a.pubActor
-// }
-
 // MakeActor returns a new local actor we can act
 // on behalf of
 func MakeActor(name, summary, actorType, iri string) (Actor, error) {
 	pubActor, common, federating, db := newPubActor()
+	// We store the followers in the key so that we
+	// get free deduplication and easy search
+	// The value is populated with the hash part (the thing
+	// after the last slash) of the id of the Follow activity
+	// that created the relationship
 	followers := make(map[string]interface{})
 	following := make(map[string]interface{})
+	// nuIri is the actor IRI in net/url format instead of string
 	nuIri, err := url.Parse(iri)
 	if err != nil {
 		log.Info("Something went wrong when parsing the local actor uri into net/url")
 		return Actor{}, err
 	}
+	// we compose the actor here so that we can go afterwards
+	// and create some pointers to it inside it's children
 	actor := Actor{
 		pubActor:  pubActor,
 		name:      name,
@@ -138,6 +125,7 @@ func MakeActor(name, summary, actorType, iri string) (Actor, error) {
 		return Actor{}, err
 	}
 
+	// create the --- BEGIN PUBLIC KEY --- block
 	publicKeyBlock := pem.Block{
 		Type:    "PUBLIC KEY",
 		Headers: nil,
@@ -145,11 +133,20 @@ func MakeActor(name, summary, actorType, iri string) (Actor, error) {
 	}
 	actor.publicKeyPem = string(pem.EncodeToMemory(&publicKeyBlock))
 
+	// save the actor to file. This file is sensitive as
+	// it contains the private keys
 	err = actor.save()
 	if err != nil {
 		return actor, err
 	}
 
+	// pass pointers to this actor to the go-fed interfaces
+	// so they can call stuff without parsing the IRI's every
+	// time.
+
+	// This doesn't look like following the philosophy of go-fed
+	// but I'm not really sure I understand its philosophy given
+	// the lack of documentation
 	federating.parent = &actor
 	common.parent = &actor
 	db.grandparent = &actor
@@ -163,20 +160,18 @@ func (a *Actor) GetOutboxIRI() *url.URL {
 	return nuiri
 }
 
-// save the actor to file
+// save the actor to file. This file is sensitive
+// as it contains the private key
 func (a *Actor) save() error {
 
 	// check if we already have a directory to save actors
 	// and if not, create it
+	// The directory looks like ./storage/actors/thisActor/
 	if _, err := os.Stat(storage + slash + "actors" + slash + a.name); os.IsNotExist(err) {
 		os.MkdirAll(storage+slash+"actors"+slash+a.name+slash, 0755)
 	}
 
-	// marshal the crypto to json
-
-	// publicKey, _ := json.Marshal(a.publicKey)
-	// privateKey, _ := json.Marshal(a.privateKey)
-
+	// fill the struct to be saved with stuff from the actor
 	actorToSave := ActorToSave{
 		Name:       a.name,
 		Summary:    a.summary,
@@ -188,27 +183,33 @@ func (a *Actor) save() error {
 		PrivateKey: a.privateKeyPem,
 	}
 
+	// marshal to JSON
 	actorJSON, err := json.MarshalIndent(actorToSave, "", "\t")
 	if err != nil {
 		log.Info("error Marshalling actor json")
 		return err
 	}
+
 	// log.Info(actorToSave)
 	// log.Info(string(actorJSON))
+
+	// Write the actual file
 	err = ioutil.WriteFile(storage+slash+"actors"+slash+a.name+slash+a.name+".json", actorJSON, 0644)
 	if err != nil {
 		log.Printf("WriteFileJson ERROR: %+v", err)
 		return err
 	}
 
-	// save pubActor to a separate file
+	// save the ActivityPub representation to a separate file
+	// this file is not sensitive and it contains the public actor JSON.
+	// This might be redundant.
+	// TODO: investigat the possibility of deleting this.
 	actorJSON = []byte(a.whoAmI())
 	err = ioutil.WriteFile(storage+slash+"actors"+slash+a.name+slash+"actor.json", actorJSON, 0644)
 	if err != nil {
 		log.Printf("WriteFileJson ERROR: %+v", err)
 		return err
 	}
-
 	return nil
 }
 
@@ -229,37 +230,44 @@ func GetActor(name, summary, actorType, iri string) (Actor, error) {
 }
 
 // LoadActor searches the filesystem and creates an Actor
-// from the data in name.json
+// from the data in <name>.json
 func LoadActor(name string) (Actor, error) {
 	// make sure our users can't read our hard drive
 	if strings.ContainsAny(name, "./ ") {
 		log.Info("Illegal characters in actor name")
 		return Actor{}, errors.New("Illegal characters in actor name")
 	}
+
+	// search storage/actors/<name>/<name>.json
 	jsonFile := storage + slash + "actors" + slash + name + slash + name + ".json"
 	fileHandle, err := os.Open(jsonFile)
 	if os.IsNotExist(err) {
+		// if it doesn't exist, give up
 		log.Info("We don't have this kind of actor stored")
 		return Actor{}, err
 	}
+	// read the file
 	byteValue, err := ioutil.ReadAll(fileHandle)
 	if err != nil {
 		log.Info("Error reading actor file")
 		return Actor{}, err
 	}
+	// unmarshal it to json
 	jsonData := make(map[string]interface{})
 	json.Unmarshal(byteValue, &jsonData)
 
+	// Start setting up stuff so that we can create an Actor
+
+	// create a new pubActor to pass to the newly created Actor
 	pubActor, federating, common, db := newPubActor()
+	// parse it's IRI to net/url
 	nuIri, err := url.Parse(jsonData["IRI"].(string))
 	if err != nil {
 		log.Info("Something went wrong when parsing the local actor uri into net/url")
 		return Actor{}, err
 	}
 
-	// publicKeyNewLines := strings.ReplaceAll(jsonData["PublicKey"].(string), "\\n", "\n")
-	// privateKeyNewLines := strings.ReplaceAll(jsonData["PrivateKey"].(string), "\\n", "\n")
-
+	// Unmarshal the keys to crypto.xxxxkey
 	publicKeyDecoded, rest := pem.Decode([]byte(jsonData["PublicKey"].(string)))
 	if publicKeyDecoded == nil {
 		log.Info(rest)
@@ -283,6 +291,7 @@ func LoadActor(name string) (Actor, error) {
 		return Actor{}, err
 	}
 
+	// create the Actor and populate all the properties
 	actor := Actor{
 		pubActor:      pubActor,
 		name:          name,
@@ -298,6 +307,7 @@ func LoadActor(name string) (Actor, error) {
 		privateKeyPem: jsonData["PrivateKey"].(string),
 	}
 
+	// give the children pointers to this Actor
 	federating.parent = &actor
 	common.parent = &actor
 	db.grandparent = &actor
@@ -307,6 +317,7 @@ func LoadActor(name string) (Actor, error) {
 
 // This is to be reused because unfollowing just wraps
 // The follow activity with an Undo activity
+// This returns a new "Follow" activity
 func (a *Actor) getFollowActivity(user string) (follow vocab.ActivityStreamsFollow, err error) {
 	follow = streams.NewActivityStreamsFollow()
 	object := streams.NewActivityStreamsObjectProperty()
@@ -335,9 +346,6 @@ func (a *Actor) getFollowActivity(user string) (follow vocab.ActivityStreamsFoll
 	follow.SetActivityStreamsTo(to)
 	follow.SetActivityStreamsActor(actorProperty)
 
-	// TODO: maybe we need to add and ID property here too
-	// go-fed seems to require it, writefreely doesn't
-
 	// log.Info(c)
 	// log.Info(iri)
 	// log.Info(follow.Serialize())
@@ -345,7 +353,6 @@ func (a *Actor) getFollowActivity(user string) (follow vocab.ActivityStreamsFoll
 }
 
 // Follow a remote user by their iri
-// TODO: check if we are already following them
 func (a *Actor) Follow(user string) error {
 	c := context.Background()
 
@@ -356,14 +363,6 @@ func (a *Actor) Follow(user string) error {
 		return err
 	}
 
-	// iri, err := url.Parse(user)
-	// if err != nil {
-	// 	log.Info("something is wrong when parsing the remote" +
-	// 		"actors iri into a url")
-	// 	log.Info(err)
-	// 	return err
-	// }
-
 	if _, ok := a.following[user]; !ok {
 		go func() {
 			_, err := a.pubActor.Send(c, a.GetOutboxIRI(), follow)
@@ -372,33 +371,48 @@ func (a *Actor) Follow(user string) error {
 				log.Info(err)
 				return
 			}
-			// we are going to save only on accept
+			// we are going to save only on accept so look at
+			// federatingBehavior.go#PostInboxRequestBodyHook()
 		}()
 	}
 
 	return nil
 }
 
-// Unfollow the user declared by the iri
+// Unfollow the user declared by the iri in `user`
+// this calls getFollowActivity to get a follow
+// activity, wraps it in an Undo activity, sets it's
+// id to the id of the original Follow activity that
+// was accepted when initially following that user
+// (this is read from the `actor.following` map
 func (a *Actor) Unfollow(user string) {
 	c := context.Background()
 	log.Info("Unfollowing " + user)
 
+	// create an undo activiy
 	undo := streams.NewActivityStreamsUndo()
 	actor := streams.NewActivityStreamsActorProperty()
 	object := streams.NewActivityStreamsObjectProperty()
-	followid := streams.NewActivityStreamsIdProperty()
+	actor.AppendIRI(a.nuIri)
+
+	// find the id of the original follow
 	hash := a.following[user].(string)
+	followid := streams.NewActivityStreamsIdProperty()
 	followidiri, _ := url.Parse(baseURL + a.name + "/" + hash)
 	followid.Set(followidiri)
-	actor.AppendIRI(a.nuIri)
+
+	// create a follow activity
 	followActivity, err := a.getFollowActivity(user)
 	if err != nil {
 		log.Error("Cannot create follow activity")
 		return
 	}
 	object.AppendActivityStreamsFollow(followActivity)
+
+	// set the id to the one we found before
 	followActivity.SetActivityStreamsId(followid)
+
+	// add the properties to the undo activity
 	undo.SetActivityStreamsObject(object)
 	undo.SetActivityStreamsActor(actor)
 
@@ -412,6 +426,8 @@ func (a *Actor) Unfollow(user string) {
 				log.Info(err)
 				return
 			}
+			// if there was no error then delete the follow
+			// from the list
 			delete(a.following, user)
 			a.save()
 		}()

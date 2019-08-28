@@ -55,18 +55,9 @@
     (nothing works on masto)
 [✔] Accept even if already follows us
 [✔] Handle http signatures
-[ ] Verify http signatures
-[ ] Implement nodeinfo and statistics
-[ ] Implement db.Update
-[ ] Implement db.Delete
-[ ] Handle paging
-    masto can't find the signature
+[✔] masto can't find the signature
 [𐄂] Why doesn't our outbox being fetched by others
     Possibly this is okay, only the things with them as receipients show
-[ ] Fix outbox to not include follows maybe?
-[ ] Refactor, comment and clean up
-[ ] Make sure we never show <actor>.json to the public
-[ ] Split to pherephone and activityServe
 [✔] Decide what's to be done with actors removed from `actors.json`.
     [✔] Remove them?
     [𐄂] Leave them read-only?
@@ -77,10 +68,21 @@
 [𐄂] Maybe look at implementing lock files?
 [𐄂] Check if it's worth it to reuse pubActor instead of creating
     a new one every time
+[𐄂] Change the following from map[string]interface{} to map[string]string
+    This breaks the json unmarshalling so it stays like this.
+[ ] Refactor, comment and clean up
+[ ] Make sure we never show <actor>.json to the public
+[ ] Fix outbox to not include follows 
+[ ] Do not announce replies if an option is set in config.ini
+[ ] Fix Announce activities to be shown at their endpoint instead of 404
+[ ] If they reject you, don't try again
+
 [ ] There are three different styles of building activities, using vocab, strings, or maps. Choose one and stick with it.
+[ ] Verify http signatures
+[ ] Implement db.Update
+[ ] Implement db.Delete
+[ ] Handle paging
+[ ] Split to pherephone and activityServe
 [ ] Implement following by mention
     (check signature and add an admin id in the config. Mentions from that account should be allowed to admin stuff)
-[ ] If they reject you, don't try again
-[ ] Change the following from map[string]interface{} to map[string]string
-[ ] Fix Announce activities to be shown at their endpoint instead of 404
-[ ] Do not announce replies
+[ ] Implement nodeinfo and statistics
