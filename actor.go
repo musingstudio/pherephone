@@ -243,7 +243,7 @@ func LoadActor(name string) (Actor, error) {
 	fileHandle, err := os.Open(jsonFile)
 	if os.IsNotExist(err) {
 		// if it doesn't exist, give up
-		log.Info("We don't have this kind of actor stored")
+		log.Info("We don't have this kind of actor stored: "+ name)
 		return Actor{}, err
 	}
 	// read the file
@@ -445,6 +445,8 @@ func (a *Actor) Announce(object string) error {
 		log.Info("Can't parse object url")
 		return err
 	}
+
+	// our announcements are public. Public stuff have a "To" to the url below
 	activityStreamsPublic, err := url.Parse("https://www.w3.org/ns/activitystreams#Public")
 
 	announce := streams.NewActivityStreamsAnnounce()
@@ -454,6 +456,10 @@ func (a *Actor) Announce(object string) error {
 	actorProperty.AppendIRI(a.nuIri)
 	to := streams.NewActivityStreamsToProperty()
 	to.AppendIRI(activityStreamsPublic)
+
+	// cc this to all our followers one by one
+	// I've seen activities to just include the url of the
+	// collection but for now this works.
 	cc := streams.NewActivityStreamsCcProperty()
 	for follower := range a.followers {
 		followerIRI, err := url.Parse(follower)
@@ -464,6 +470,7 @@ func (a *Actor) Announce(object string) error {
 		}
 	}
 
+	// add a timestamp
 	publishedProperty := streams.NewActivityStreamsPublishedProperty()
 	publishedProperty.Set(time.Now())
 
@@ -473,11 +480,14 @@ func (a *Actor) Announce(object string) error {
 	announce.SetActivityStreamsCc(cc)
 	announce.SetActivityStreamsTo(to)
 
+	// send it
 	go a.pubActor.Send(c, a.nuIri, announce)
 
 	return nil
 }
 
+// whoAmI returns the actor information in ActivityStreams format
+// TODO: make this use the streams library
 func (a *Actor) whoAmI() string {
 	return `{"@context":	"https://www.w3.org/ns/activitystreams",
 	"type": "` + a.actorType + `",
@@ -498,6 +508,7 @@ func (a *Actor) whoAmI() string {
 	}`
 }
 
+// Load a post with a specific hash (the part after the lash slash of the id IRI)
 func (a *Actor) getPost(hash string) (post string, err error) {
 	// make sure our users can't read our hard drive
 	if strings.ContainsAny(hash, "./ ") {
@@ -516,8 +527,15 @@ func (a *Actor) getPost(hash string) (post string, err error) {
 	return
 }
 
-// HandleOutbox handles the outbox of our actor. It actually just
-// delegates to go-fed without doing anything in particular.
+// HandleOutbox handles the outbox of our actor. It used to just
+// delegate to go-fed without doing anything in particular. (commented code)
+// but trying to solve some issues I decided to write the functionality myself
+// because go-fed returned an orderedcollection with a bunch of IRI's instead
+// of the paged interface mastodon and pixelfed have.
+// This didn't actually solve the issue of getting the old boosts when viewing
+// the account from mastodon, but it's possible that mastodon only shows the
+// posts that at some point federated with them so I gave up.
+// However I kept the new layout.
 func (a *Actor) HandleOutbox(w http.ResponseWriter, r *http.Request) {
 	// c := context.Background()
 	// if handled, err := a.pubActor.PostOutbox(c, w, r); err != nil {
@@ -606,6 +624,8 @@ func (a *Actor) HandleOutbox(w http.ResponseWriter, r *http.Request) {
 
 // HandleInbox handles the inbox of our actor. It actually just
 // delegates to go-fed without doing anything in particular.
+// As it is now it returns an empty collection. I do not know
+// if we need to implement an inbox
 func (a *Actor) HandleInbox(w http.ResponseWriter, r *http.Request) {
 	// body,_ := ioutil.ReadAll(r.Body)
 	// log.Info(string(body))
@@ -629,8 +649,6 @@ func (a *Actor) JotFollowerDown(iri string) error {
 	a.followers[iri] = struct{}{}
 	return a.save()
 }
-
-// func (a *Actor) savePost()
 
 // GetFollowers returns a list of people that follow us
 func (a *Actor) GetFollowers(page int) (response []byte, err error) {
