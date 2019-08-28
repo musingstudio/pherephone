@@ -387,10 +387,10 @@ func (a *Actor) Unfollow(user string) {
 	undo := streams.NewActivityStreamsUndo()
 	actor := streams.NewActivityStreamsActorProperty()
 	object := streams.NewActivityStreamsObjectProperty()
-	id := streams.NewActivityStreamsIdProperty()
+	followid := streams.NewActivityStreamsIdProperty()
 	hash := a.following[user].(string)
-	idiri, _ := url.Parse(baseURL + a.name + "/" + hash)
-	id.Set(idiri)
+	followidiri, _ := url.Parse(baseURL + a.name + "/" + hash)
+	followid.Set(followidiri)
 	actor.AppendIRI(a.nuIri)
 	followActivity, err := a.getFollowActivity(user)
 	if err != nil {
@@ -398,10 +398,13 @@ func (a *Actor) Unfollow(user string) {
 		return
 	}
 	object.AppendActivityStreamsFollow(followActivity)
+	followActivity.SetActivityStreamsId(followid)
 	undo.SetActivityStreamsObject(object)
+	undo.SetActivityStreamsActor(actor)
 
 	// only if we're already following them
 	if _, ok := a.following[user]; ok {
+		log.Info(undo.Serialize())
 		go func() {
 			_, err := a.pubActor.Send(c, a.GetOutboxIRI(), undo)
 			if err != nil {

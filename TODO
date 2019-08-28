@@ -47,34 +47,34 @@
 [✔] Implement webfinger
 [✔] Fix outbox json to look like the other softwares
 [✔] Make sure masto finds signature
-[ ] Implement Unfollow 
-[ ] Implement accepting others unfollowing us
+[~] Implement Unfollow (it doesn't work)
+[✔] Implement accepting others unfollowing us
 [✔] Implement accept (accept when other follow us)
     (done but can't test it pending http signatures)
     Works in pleroma/pixelfed not working on masto
     (nothing works on masto)
-[ ] Implement nodeinfo and statistics
 [✔] Accept even if already follows us
+[✔] Handle http signatures
+[ ] Verify http signatures
+[ ] Implement nodeinfo and statistics
 [ ] Implement db.Update
 [ ] Implement db.Delete
 [ ] Handle paging
-[✔] Handle http signatures
     masto can't find the signature
-[ ] Verify http signatures
 [𐄂] Why doesn't our outbox being fetched by others
     Possibly this is okay, only the things with them as receipients show
 [ ] Fix outbox to not include follows maybe?
 [ ] Refactor, comment and clean up
 [ ] Make sure we never show <actor>.json to the public
 [ ] Split to pherephone and activityServe
-[ ] Decide what's to be done with actors removed from `actors.json`.
-    [ ] Remove them?
-    [ ] Leave them read-only?
-    [ ] Leave them as is?
-[ ] Check if an early failure in announcing posts causes a problem to the following ones
+[✔] Decide what's to be done with actors removed from `actors.json`.
+    [✔] Remove them?
+    [𐄂] Leave them read-only?
+    [𐄂] Leave them as is?
+[𐄂] Check if an early failure in announcing posts causes a problem to the following ones
 [✔] Handle followers and following uri's
-[ ] Do I care about the inbox?
-[ ] Maybe look at implementing lock files?
+[𐄂] Do I care about the inbox?
+[𐄂] Maybe look at implementing lock files?
 [𐄂] Check if it's worth it to reuse pubActor instead of creating
     a new one every time
 [ ] There are three different styles of building activities, using vocab, strings, or maps. Choose one and stick with it.
@@ -83,3 +83,4 @@
 [ ] If they reject you, don't try again
 [ ] Change the following from map[string]interface{} to map[string]string
 [ ] Fix Announce activities to be shown at their endpoint instead of 404
+[ ] Do not announce replies
