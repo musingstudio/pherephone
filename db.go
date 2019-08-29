@@ -154,11 +154,16 @@ func (d *database) Get(c context.Context, id *url.URL) (value vocab.Type, err er
 	// TBD
 	if owns, _ := d.Owns(c, id); owns {
 		actor, hash := d.parseIRI(id)
+		if hash == actor {
+			// don't allow reading <actor>.json
+			return
+		}
 		jsonFile = storage + slash + "actors" + slash + actor + slash + hash + ".json"
 		// this should look like storage/actors/qwazix/nvjfdjelkjdjk.json
 		// or storage/actors/qwazix/qwazix.json
 	} else {
 		// replace slashes with smileys (no, pherephone doesn't work in non unicode filesystems)
+		// this also makes sure that there's no chance to traverse the filesystem.
 		path := makeURLsaveable(strings.Replace(id.String(), baseURL, "", 1))
 		jsonFile = storage + slash + "foreign" + slash + path + ".json"
 		// this should look like storage/foreign/http:😆😆some.domain😆some😆path.json
