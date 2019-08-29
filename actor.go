@@ -32,15 +32,15 @@ var slash = string(os.PathSeparator)
 // behalf of. This contains a PubActor which is
 // an instance of the FederatingActor go-fed interface
 type Actor struct {
-	name, summary, actorType, iri string
-	pubActor                      pub.FederatingActor
-	nuIri                         *url.URL
-	followers, following          map[string]interface{}
-	posts                         map[int]map[string]string
-	publicKey                     crypto.PublicKey
-	privateKey                    crypto.PrivateKey
-	publicKeyPem                  string
-	privateKeyPem                 string
+	name, summary, actorType, iri  string
+	pubActor                       pub.FederatingActor
+	nuIri                          *url.URL
+	followers, following, rejected map[string]interface{}
+	posts                          map[int]map[string]string
+	publicKey                      crypto.PublicKey
+	privateKey                     crypto.PrivateKey
+	publicKeyPem                   string
+	privateKeyPem                  string
 }
 
 // ActorToSave is a stripped down actor representation
@@ -49,7 +49,7 @@ type Actor struct {
 // see https://stackoverflow.com/questions/26327391/json-marshalstruct-returns
 type ActorToSave struct {
 	Name, Summary, ActorType, IRI, PublicKey, PrivateKey string
-	Followers, Following                                 map[string]interface{}
+	Followers, Following, Rejected                       map[string]interface{}
 }
 
 // newPubActor constructs a go-fed federating actor with all the required components
@@ -83,6 +83,7 @@ func MakeActor(name, summary, actorType, iri string) (Actor, error) {
 	// that created the relationship
 	followers := make(map[string]interface{})
 	following := make(map[string]interface{})
+	rejected := make(map[string]interface{})
 	// nuIri is the actor IRI in net/url format instead of string
 	nuIri, err := url.Parse(iri)
 	if err != nil {
@@ -100,6 +101,7 @@ func MakeActor(name, summary, actorType, iri string) (Actor, error) {
 		nuIri:     nuIri,
 		followers: followers,
 		following: following,
+		rejected:  rejected,
 	}
 
 	// create actor's keypair
@@ -179,6 +181,7 @@ func (a *Actor) save() error {
 		IRI:        a.iri,
 		Followers:  a.followers,
 		Following:  a.following,
+		Rejected:	a.rejected,
 		PublicKey:  a.publicKeyPem,
 		PrivateKey: a.privateKeyPem,
 	}
@@ -301,6 +304,7 @@ func LoadActor(name string) (Actor, error) {
 		nuIri:         nuIri,
 		followers:     jsonData["Followers"].(map[string]interface{}),
 		following:     jsonData["Following"].(map[string]interface{}),
+		rejected:      jsonData["Rejected"].(map[string]interface{}),
 		publicKey:     publicKey,
 		privateKey:    privateKey,
 		publicKeyPem:  jsonData["PublicKey"].(string),
@@ -363,17 +367,21 @@ func (a *Actor) Follow(user string) error {
 		return err
 	}
 
+	// if we are not already following them
 	if _, ok := a.following[user]; !ok {
-		go func() {
-			_, err := a.pubActor.Send(c, a.GetOutboxIRI(), follow)
-			if err != nil {
-				log.Info("Couldn't follow " + user)
-				log.Info(err)
-				return
-			}
-			// we are going to save only on accept so look at
-			// federatingBehavior.go#PostInboxRequestBodyHook()
-		}()
+		// if we have not been rejected previously
+		if _, ok := a.rejected[user]; !ok {
+			go func() {
+				_, err := a.pubActor.Send(c, a.GetOutboxIRI(), follow)
+				if err != nil {
+					log.Info("Couldn't follow " + user)
+					log.Info(err)
+					return
+				}
+				// we are going to save only on accept so look at
+				// federatingBehavior.go#PostInboxRequestBodyHook()
+			}()
+		}
 	}
 
 	return nil
@@ -561,7 +569,7 @@ func (a *Actor) HandleOutbox(w http.ResponseWriter, r *http.Request) {
 	var response []byte
 	page := r.URL.Query().Get("page")
 	if page == "" {
-
+		// read the
 		outboxJSON, err := ioutil.ReadFile(storage + slash + "actors" + slash + a.name + slash + "outbox.json")
 		if err != nil {
 			log.Error("can't read outbox")

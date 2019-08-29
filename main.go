@@ -145,8 +145,8 @@ func main() {
 
 	var actorHandler http.HandlerFunc = func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("content-type", "application/activity+json; charset=utf-8")
-		log.Info("Remote server just fetched our /actor endpoint")
 		username := mux.Vars(r)["actor"]
+		log.Info("Remote server just fetched our /actor endpoint: " + username)
 		log.Info(username)
 		if username == ".well-known" || username == "favicon.ico" {
 			log.Info("well-known, skipping...")
@@ -270,7 +270,7 @@ func main() {
 	gorilla.HandleFunc("/{actor}/following/", followingHandler)
 	gorilla.HandleFunc("/{actor}", actorHandler)
 	gorilla.HandleFunc("/{actor}/", actorHandler)
-	gorilla.HandleFunc("/{actor}/post/{hash}", postHandler)
+	gorilla.HandleFunc("/{actor}/{hash}", postHandler)
 	http.Handle("/", gorilla)
 
 	// Here we begin the actual pherephone functionality

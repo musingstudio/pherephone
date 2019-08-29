@@ -14,7 +14,7 @@
             "https://pixelfed.social/users/qwazix",
             "https://print3d.social/users/qwazix",
             "https://mixt.qwazix.com/api/collections/qwazix",
-            "https://write.as/api/collections/qwazix"
+            "https://wf.floorb.qwazix.com/api/collections/test"
         ]
     },
     "myAwesomeList3" : {
@@ -23,7 +23,8 @@
             "http://writefreely.xps/api/collections/qwazix",
             "https://print3d.social/users/qwazix",
             "https://mixt.qwazix.com/api/collections/qwazix",
-            "https://write.as/api/collections/qwazix"
+            "https://wf.floorb.qwazix.com/api/collections/test",
+            "https://wf.floorb.qwazix.com/api/collections/qwazix"
         ]
     }
 }

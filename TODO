@@ -70,12 +70,14 @@
     a new one every time
 [𐄂] Change the following from map[string]interface{} to map[string]string
     This breaks the json unmarshalling so it stays like this.
-[ ] Refactor, comment and clean up
 [ ] Make sure we never show <actor>.json to the public
 [ ] Fix outbox to not include follows 
 [ ] Do not announce replies if an option is set in config.ini
-[ ] Fix Announce activities to be shown at their endpoint instead of 404
-[ ] If they reject you, don't try again
+[✔] Fix Announce activities to be shown at their endpoint instead of 404
+[✔] If they reject you, don't try again
+[ ] Refactor, comment and clean up
+[ ] Throw an error when JSON is malformed
+[✔] Do not boost things not posted from people we follow
 
 [ ] There are three different styles of building activities, using vocab, strings, or maps. Choose one and stick with it.
 [ ] Verify http signatures

@@ -101,6 +101,10 @@ func (f *federatingBehavior) PostInboxRequestBodyHook(c context.Context, r *http
 		obj := object.(map[string]interface{})
 		f.parent.following[acceptor.Begin().GetIRI().String()] = strings.Replace(obj["id"].(string), baseURL+f.parent.name+"/", "", 1)
 		f.parent.save()
+	} else if activity.GetTypeName() == "Reject" { // handle unfollowing
+		rejector := activity.GetActivityStreamsActor()
+		f.parent.rejected[rejector.Begin().GetIRI().String()] = ""
+		f.parent.save()
 	} else if activity.GetTypeName() == "Undo" { // handle unfollowing
 		object, _ := activity.GetActivityStreamsObject().Serialize()
 		obj := object.(map[string]interface{})
