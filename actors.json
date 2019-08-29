@@ -3,8 +3,8 @@
         "summary": "a list of favorite writers",
         "follow": [
             "http://writefreely.xps/api/collections/qwazix",
-            "https://pixelfed.social/users/qwazix"
-
+            "https://pixelfed.social/users/qwazix",
+            "https://mastodon.social/users/qwazix"
         ]
     },
     "myAwesomeList2" : {

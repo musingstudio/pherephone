@@ -42,6 +42,25 @@ func (f *federatingBehavior) PostInboxRequestBodyHook(c context.Context, r *http
 		if f.parent.following[author] == nil {
 			return
 		}
+		// don't announce if it's a reply unless the option in config,ini is
+		// set to true
+		var serializedObject interface{} // if I use := below err is shadowed
+		serializedObject, err = object.Serialize()
+		serializedObjectMap := serializedObject.(map[string]interface{})
+		if err != nil {
+			log.Error("cannot serialize object")
+			return
+		}
+		inReplyTo, ok := serializedObjectMap["inReplyTo"]
+		log.Info("Checking if it is a reply")
+		log.Info(serializedObjectMap);
+		isReply := false;
+		if ok && inReplyTo != nil && inReplyTo != "" {
+			isReply = true;
+		}
+		if announceReplies == false && isReply == true {
+			return
+		}
 		id := object.Begin().GetType().GetActivityStreamsId()
 		f.parent.Announce(id.GetIRI().String())
 	} else if activity.GetTypeName() == "Follow" {

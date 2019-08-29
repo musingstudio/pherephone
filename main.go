@@ -5,8 +5,8 @@ import (
 	// "log"
 	"flag"
 	"os"
-	"strings"
 	"strconv"
+	"strings"
 
 	// "errors"
 
@@ -29,6 +29,7 @@ import (
 
 var baseURL = "http://example.com/"
 var storage = "storage"
+var announceReplies = false
 
 func main() {
 
@@ -93,6 +94,9 @@ func main() {
 	if _, err := os.Stat(foreignDir); os.IsNotExist(err) {
 		os.MkdirAll(foreignDir, 0755)
 	}
+
+	// load whether we'll boost replies
+	announceReplies, _ = cfg.Section("general").Key("announce_replies").Bool()
 
 	// This could work too if we don't want to handle multiple actors and stuff:
 	// var outboxHandler http.HandlerFunc = actor.HandleOutbox
@@ -312,11 +316,11 @@ func main() {
 		}
 		// Iterate over the current following users and if anybody doesn't exist
 		// in the users to follow list unfollow them
-		for following := range followerActor.following{
-			exists := false;
+		for following := range followerActor.following {
+			exists := false
 			for _, followee := range followees {
 				if followee.(string) == following {
-					exists = true;
+					exists = true
 					break
 				}
 			}
