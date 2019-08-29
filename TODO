@@ -70,16 +70,21 @@
     a new one every time
 [𐄂] Change the following from map[string]interface{} to map[string]string
     This breaks the json unmarshalling so it stays like this.
-[ ] Throw an error when JSON is malformed
 [✔] Make sure we never show <actor>.json to the public
-[ ] Fix outbox to not include follows 
 [✔] Do not announce replies if an option is set in config.ini
 [✔] Fix Announce activities to be shown at their endpoint instead of 404
 [✔] If they reject you, don't try again
-[ ] Refactor, comment and clean up
 [✔] Do not boost things not posted from people we follow
+[ ] Throw an error when JSON is malformed
+[ ] Refactor, comment and clean up
+[ ] Make unfollowing actually federate
 
 [ ] Allow overriding replies boosting from actors.json for each actor
+[ ] Fix outbox to not include follows 
+    go-fed adds follows to the outbox but mastodon uses the TotalItems property
+    to show total toots so it probably doesn't expect the follows to be included.
+    It's some work to fix this and the discrepancy will be small in the long run
+    (few follows compared to toots) so I'm leaving it for now
 [ ] There are three different styles of building activities, using vocab, strings, or maps. Choose one and stick with it.
 [ ] Move config variables to config.<val> namespace
 [ ] Verify http signatures
