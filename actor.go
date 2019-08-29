@@ -489,7 +489,7 @@ func (a *Actor) Announce(object string) error {
 // whoAmI returns the actor information in ActivityStreams format
 // TODO: make this use the streams library
 func (a *Actor) whoAmI() string {
-	return `{"@context":	"https://www.w3.org/ns/activitystreams",
+	return `{"@context":	["https://www.w3.org/ns/activitystreams"],
 	"type": "` + a.actorType + `",
 	"id": "` + baseURL + a.name + `",
 	"name": "` + a.name + `",
@@ -629,6 +629,7 @@ func (a *Actor) HandleOutbox(w http.ResponseWriter, r *http.Request) {
 func (a *Actor) HandleInbox(w http.ResponseWriter, r *http.Request) {
 	// body,_ := ioutil.ReadAll(r.Body)
 	// log.Info(string(body))
+	// log.Info("&&&&&&&&&&&&&")
 	c := context.Background()
 	if handled, err := a.pubActor.PostInbox(c, w, r); err != nil {
 		log.Info(err)

@@ -13,14 +13,17 @@
             "http://writefreely.xps/api/collections/qwazix",
             "https://pixelfed.social/users/qwazix",
             "https://print3d.social/users/qwazix",
-            "https://mixt.qwazix.com/api/collections/qwazix"
+            "https://mixt.qwazix.com/api/collections/qwazix",
+            "https://write.as/api/collections/qwazix"
         ]
     },
     "myAwesomeList3" : {
         "summary": "a list of favorite writers",
         "follow": [
             "http://writefreely.xps/api/collections/qwazix",
-            "https://print3d.social/users/qwazix"
+            "https://print3d.social/users/qwazix",
+            "https://mixt.qwazix.com/api/collections/qwazix",
+            "https://write.as/api/collections/qwazix"
         ]
     }
 }
