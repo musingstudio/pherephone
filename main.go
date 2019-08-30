@@ -54,9 +54,11 @@ func main() {
 	log.SetFlags(log.Llongfile)
 	// log.SetFlags(log.LstdFlags | log.Lshortfile)
 	log.EnableLevel("warn")
+
 	// create a logger with levels but without prefixes for easier to read
 	// debug output
-	printer := log.New(os.Stdout, " ", 0)
+	printer := log.New(os.Stdout, "", 0)
+	printer.EnableLevel("error")
 
 	if *debugFlag == true {
 		fmt.Println()
@@ -244,8 +246,7 @@ func main() {
 			w.WriteHeader(http.StatusNotFound)
 			fmt.Fprintf(w, "404 - post not found")
 			return
-		}
-		// response := `{"subject":"acct:` + actor.name + `@` + server + `","aliases":["` + baseURL + actor.name + `","` + baseURL + actor.name + `"],"links":[{"href":"` + baseURL + `","type":"text/html","rel":"https://webfinger.net/rel/profile-page"},{"href":"` + baseURL + actor.name + `","type":"application/activity+json","rel":"self"}]}`
+		}	
 
 		response := `{
 			"subject": "acct:` + actor.name + `@` + server + `",
@@ -290,9 +291,13 @@ func main() {
 	// Unmarshall it into a map of string arrays
 	whoFollowsWho := make(map[string]map[string]interface{})
 	byteValue, _ := ioutil.ReadAll(jsonFile)
-	json.Unmarshal(byteValue, &whoFollowsWho)
+	err = json.Unmarshal(byteValue, &whoFollowsWho)
+	if err != nil{
+		printer.Error("There's an error in your actors.json. Please check!")
+		printer.Error("")
+		return
+	}
 
-	// log.Info(string(byteValue))
 	// create all local actors if they don't exist yet
 	for follower, data := range whoFollowsWho {
 		followees := data["follow"].([]interface{})
