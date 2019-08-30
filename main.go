@@ -18,8 +18,8 @@ import (
 	// "context"
 	// "html"
 
-	"github.com/go-fed/activity/pub"
 	"github.com/gologme/log"
+	"github.com/qwazix/activity/pub"
 
 	// "github.com/go-fed/activity/streams"
 	"github.com/gorilla/mux"
