@@ -495,7 +495,7 @@ func (a *Actor) Announce(object string) error {
 }
 
 // whoAmI returns the actor information in ActivityStreams format
-// TODO: make this use the streams library
+// TODO: make this use the streams library (or a map)
 func (a *Actor) whoAmI() string {
 	return `{"@context":	["https://www.w3.org/ns/activitystreams"],
 	"type": "` + a.actorType + `",
@@ -523,10 +523,12 @@ func (a *Actor) getPost(hash string) (post string, err error) {
 		log.Info("Illegal characters in post name")
 		return "", errors.New("Illegal characters in post name")
 	}
+	// make sure they can't read <actor>.json because that contains the private key
 	if hash == a.name {
 		log.Info("Post id cannot be = to actor name")
 		return "", errors.New("Post id cannot be = to actor name")
 	}
+	// read the file
 	filename := storage + slash + "actors" + slash + a.name + slash + hash + ".json"
 	post, err = readStringFromFile(filename)
 	if err != nil {
@@ -567,14 +569,17 @@ func (a *Actor) HandleOutbox(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var response []byte
+	// if there's no `page` parameter then just show an orderedCollection with 
+	// links to the OrderedCollectionPages (we don't have pagination yet but still)
 	page := r.URL.Query().Get("page")
 	if page == "" {
-		// read the
+		// read the outbox from file
 		outboxJSON, err := ioutil.ReadFile(storage + slash + "actors" + slash + a.name + slash + "outbox.json")
 		if err != nil {
 			log.Error("can't read outbox")
 			return
 		}
+		// unmarshal to json
 		outboxMap := make(map[string]interface{})
 		err = json.Unmarshal(outboxJSON, &outboxMap)
 
@@ -583,6 +588,11 @@ func (a *Actor) HandleOutbox(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		// prepare the response. The totalItems here shows all items as go-fed 
+		// puts everything (including follows) in the outbox (unless I was supposed
+		// to filter follows somewhere). But iterating here and weeding follows out
+		// was too much work for a small discrepancy in the long run (few followees
+		// vs hundreds of boosts) so I decided not to do it.
 		response = []byte(`{
 			"@context" : "https://www.w3.org/ns/activitystreams",
 			"first" : "` + baseURL + actor.name + `/outbox?page=true",
@@ -591,16 +601,22 @@ func (a *Actor) HandleOutbox(w http.ResponseWriter, r *http.Request) {
 			"totalItems" : ` + strconv.Itoa(len(outboxMap["orderedItems"].([]interface{}))) + `, 
 			"type" : "OrderedCollection"
 			}`)
+	// show the page with the actual actions here. This is not being read by mastodon
+	// and it shows only whatever has at some point federated with them, but I think that
+	// this might actually be intended behavior and I don't know if it's worth pursuing 
+	// it more.
 	} else if page == "1" {
 		collectionPage := make(map[string]interface{})
 		collectionPage["@context"] = "https://www.w3.org/ns/activitystreams"
 		collectionPage["id"] = baseURL + a.name + "/outbox?page=" + page
 
+		// read the outbox
 		outboxJSON, err := ioutil.ReadFile(storage + slash + "actors" + slash + a.name + slash + "outbox.json")
 		if err != nil {
 			log.Error("can't read outbox")
 			return
 		}
+		// unmarshal it into json
 		outboxMap := make(map[string]interface{})
 		err = json.Unmarshal(outboxJSON, &outboxMap)
 
@@ -609,24 +625,33 @@ func (a *Actor) HandleOutbox(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		// count the items
 		items := make([]interface{}, 0, len(outboxMap["orderedItems"].([]interface{})))
+		// iterate over them
 		for _, id := range outboxMap["orderedItems"].([]interface{}) {
 			parts := strings.Split(id.(string), "/")
 			hash := parts[len(parts)-1]
+			// and read the file that contains info for each one of them
 			activityJSON, err := ioutil.ReadFile(storage + slash + "actors" + slash + a.name + slash + hash + ".json")
 			if err != nil {
 				log.Error("can't read activity")
 				return
 			}
 			var temp map[string]string
+
+			// put it into a map
 			json.Unmarshal(activityJSON, &temp)
+
+			// and append it to items
 			items = append(items, temp)
 		}
+		// then plug the items to the page
 		collectionPage["orderedItems"] = items
 		collectionPage["partOf"] = baseURL + a.name + "/outbox"
 		collectionPage["type"] = "OrderedCollectionPage"
 		response, _ = json.Marshal(collectionPage)
 	}
+	// and finally publish
 	w.Write([]byte(response))
 }
 
@@ -635,9 +660,6 @@ func (a *Actor) HandleOutbox(w http.ResponseWriter, r *http.Request) {
 // As it is now it returns an empty collection. I do not know
 // if we need to implement an inbox
 func (a *Actor) HandleInbox(w http.ResponseWriter, r *http.Request) {
-	// body,_ := ioutil.ReadAll(r.Body)
-	// log.Info(string(body))
-	// log.Info("&&&&&&&&&&&&&")
 	c := context.Background()
 	if handled, err := a.pubActor.PostInbox(c, w, r); err != nil {
 		log.Info(err)
@@ -661,7 +683,13 @@ func (a *Actor) JotFollowerDown(iri string) error {
 
 // GetFollowers returns a list of people that follow us
 func (a *Actor) GetFollowers(page int) (response []byte, err error) {
+	// if there's no page parameter mastodon displays an 
+	// OrderedCollection with info of where to find orderedCollectionPages
+	// with the actual information. We are mirroring that behavior
 	if page == 0 {
+		// This was an attempt at doing this the official way. It's too
+		// verbose. I'm leaving it in case I decide to "fix" it
+		//
 		// collection = streams.NewActivityStreamsOrderedCollection()
 		// totalItems := streams.NewActivityStreamsTotalItemsProperty()
 		// totalItems.Set(len(a.followers))
@@ -669,7 +697,6 @@ func (a *Actor) GetFollowers(page int) (response []byte, err error) {
 		// first := streams.NewActivityStreamsFirstProperty()
 		// firstIRI := url.Parse()
 		// first.SetIRI()
-
 		response = []byte(`{
 			"@context" : "https://www.w3.org/ns/activitystreams",
 			"first" : "` + baseURL + slash + a.name + `/followers?page=1",
@@ -697,6 +724,10 @@ func (a *Actor) GetFollowers(page int) (response []byte, err error) {
 // GetFollowing returns a list of people we follow
 func (a *Actor) GetFollowing(page int) (response []byte, err error) {
 	if page == 0 {
+		// TODO make this into a map like below
+		// if there's no page parameter mastodon displays an 
+		// OrderedCollection with info of where to find orderedCollectionPages
+		// with the actual information. We are mirroring that behavior
 		response = []byte(`{
 			"@context" : "https://www.w3.org/ns/activitystreams",
 			"first" : "` + baseURL + slash + a.name + `/following?page=1",
@@ -704,7 +735,8 @@ func (a *Actor) GetFollowing(page int) (response []byte, err error) {
 			"totalItems" : ` + strconv.Itoa(len(a.following)) + `,
 			"type" : "OrderedCollection"
 		 }`)
-	} else if page == 1 { // implement pagination
+	// This actually prints our followees in an orderedCollectionPage
+	} else if page == 1 { // TODO: implement pagination
 		collectionPage := make(map[string]interface{})
 		collectionPage["@context"] = "https://www.w3.org/ns/activitystreams"
 		collectionPage["id"] = baseURL + slash + a.name + "following?page=" + strconv.Itoa(page)
