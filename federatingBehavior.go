@@ -1,11 +1,9 @@
 package main
 
 import (
-	// "github.com/go-fed/activity/streams"
 	"context"
 	"errors"
 
-	// "log"
 	"net/http"
 	"net/url"
 
@@ -29,8 +27,13 @@ func newFederatingBehavior(db *database) *federatingBehavior {
 	}
 }
 
+// This handles inbox requests. Some inbox requests (such as follows) are supposed to be handled by go-fed but I don't know how to trigger
+// their callbacks or modify their behavior. For example while there is mentioning of automatically accepting the follows inside the go-fed 
+// comments, I can't see how followers are stored in the database.
+// Anyway since I had already written much of the following logic and since go-fed chokes on some non-standard input (like writefreely's 
+// activities with missing @context) which I want to handle, I'm re handling some stuff here. The errors are still being thrown elsewhere
+// in go-fed even if the input is chewed here (so if you see "Can't parse actor, no @context", it might actually still get parsed here)
 func (f *federatingBehavior) PostInboxRequestBodyHook(c context.Context, r *http.Request, activity pub.Activity) (out context.Context, err error) {
-
 	// it's a post of some kind, boost it
 	if activity.GetTypeName() == "Create" {
 		object := activity.GetActivityStreamsObject()
@@ -51,16 +54,23 @@ func (f *federatingBehavior) PostInboxRequestBodyHook(c context.Context, r *http
 			log.Error("cannot serialize object")
 			return
 		}
+		// serialize the object since aparently `inReplyTo` is non-standard
+		// and go-fed has no idea of it
 		inReplyTo, ok := serializedObjectMap["inReplyTo"]
 		log.Info("Checking if it is a reply")
 		log.Info(serializedObjectMap);
 		isReply := false;
+		// if the field exists and is not null and is not empty
+		// then it's a reply
 		if ok && inReplyTo != nil && inReplyTo != "" {
 			isReply = true;
 		}
+		// if it's a reply and announce_replies config option
+		// is set to false then bail out
 		if announceReplies == false && isReply == true {
 			return
 		}
+		// else announce it
 		id := object.Begin().GetType().GetActivityStreamsId()
 		f.parent.Announce(id.GetIRI().String())
 	} else if activity.GetTypeName() == "Follow" {
@@ -80,6 +90,7 @@ func (f *federatingBehavior) PostInboxRequestBodyHook(c context.Context, r *http
 			f.parent.JotFollowerDown(newFollower)
 		}
 		// send accept anyway even if they are following us already
+		// this is very verbose. I would prefer creating a map by hand
 		accept := streams.NewActivityStreamsAccept()
 		sender := streams.NewActivityStreamsActorProperty()
 		to := streams.NewActivityStreamsToProperty()
@@ -102,14 +113,13 @@ func (f *federatingBehavior) PostInboxRequestBodyHook(c context.Context, r *http
 		id.SetIRI(idIRI)
 		accept.SetActivityStreamsId(id)
 		accept.SetActivityStreamsTo(to)
-
-		// TODO add parent.outbox to avoid building it every time
 		// log.Info(accept.Serialize())
 		go f.parent.pubActor.Send(c, f.parent.GetOutboxIRI(), accept)
 	} else if activity.GetTypeName() == "Accept" {
 		acceptor := activity.GetActivityStreamsActor()
-		// follow := activity.GetActivityStreamsObject()//.(vocab.ActivityStreamsFollow)
-		// log.Info("====================sdfsfasda=================")
+		// uncomment below to print debugging information
+		// ===============================================
+		// follow := activity.GetActivityStreamsObject()
 		// serializedFollow, _ := follow.Serialize()
 		// serializedFollowMap := serializedFollow.(map[string]interface{})
 		// log.Info(serializedFollowMap["actor"])
@@ -120,16 +130,17 @@ func (f *federatingBehavior) PostInboxRequestBodyHook(c context.Context, r *http
 		obj := object.(map[string]interface{})
 		f.parent.following[acceptor.Begin().GetIRI().String()] = strings.Replace(obj["id"].(string), baseURL+f.parent.name+"/", "", 1)
 		f.parent.save()
-	} else if activity.GetTypeName() == "Reject" { // handle unfollowing
+	} else if activity.GetTypeName() == "Reject" { // handle rejections
 		rejector := activity.GetActivityStreamsActor()
+		// write the actor to the list of rejected follows so that 
+		// we won't try following them again
 		f.parent.rejected[rejector.Begin().GetIRI().String()] = ""
 		f.parent.save()
 	} else if activity.GetTypeName() == "Undo" { // handle unfollowing
+		// Serializing and using the map instead of official go-fed types
 		object, _ := activity.GetActivityStreamsObject().Serialize()
 		obj := object.(map[string]interface{})
 		// only if they are undoing a follow
-		log.Info("####")
-		log.Info(obj)
 		if obj["type"].(string) == "Follow" {
 			requester := obj["actor"].(string)
 			delete(f.parent.followers, requester)
