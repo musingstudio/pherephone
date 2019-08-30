@@ -28,9 +28,9 @@ func newFederatingBehavior(db *database) *federatingBehavior {
 }
 
 // This handles inbox requests. Some inbox requests (such as follows) are supposed to be handled by go-fed but I don't know how to trigger
-// their callbacks or modify their behavior. For example while there is mentioning of automatically accepting the follows inside the go-fed 
+// their callbacks or modify their behavior. For example while there is mentioning of automatically accepting the follows inside the go-fed
 // comments, I can't see how followers are stored in the database.
-// Anyway since I had already written much of the following logic and since go-fed chokes on some non-standard input (like writefreely's 
+// Anyway since I had already written much of the following logic and since go-fed chokes on some non-standard input (like writefreely's
 // activities with missing @context) which I want to handle, I'm re handling some stuff here. The errors are still being thrown elsewhere
 // in go-fed even if the input is chewed here (so if you see "Can't parse actor, no @context", it might actually still get parsed here)
 func (f *federatingBehavior) PostInboxRequestBodyHook(c context.Context, r *http.Request, activity pub.Activity) (out context.Context, err error) {
@@ -58,12 +58,12 @@ func (f *federatingBehavior) PostInboxRequestBodyHook(c context.Context, r *http
 		// and go-fed has no idea of it
 		inReplyTo, ok := serializedObjectMap["inReplyTo"]
 		log.Info("Checking if it is a reply")
-		log.Info(serializedObjectMap);
-		isReply := false;
+		log.Info(serializedObjectMap)
+		isReply := false
 		// if the field exists and is not null and is not empty
 		// then it's a reply
 		if ok && inReplyTo != nil && inReplyTo != "" {
-			isReply = true;
+			isReply = true
 		}
 		// if it's a reply and announce_replies config option
 		// is set to false then bail out
@@ -132,7 +132,7 @@ func (f *federatingBehavior) PostInboxRequestBodyHook(c context.Context, r *http
 		f.parent.save()
 	} else if activity.GetTypeName() == "Reject" { // handle rejections
 		rejector := activity.GetActivityStreamsActor()
-		// write the actor to the list of rejected follows so that 
+		// write the actor to the list of rejected follows so that
 		// we won't try following them again
 		f.parent.rejected[rejector.Begin().GetIRI().String()] = ""
 		f.parent.save()
