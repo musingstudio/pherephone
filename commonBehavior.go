@@ -10,7 +10,6 @@ import (
 	"github.com/go-fed/httpsig"
 
 	"github.com/gologme/log"
-	// "log"
 )
 
 var _ pub.CommonBehavior = &commonBehavior{}
@@ -36,6 +35,10 @@ func (a *commonBehavior) AuthenticateGetOutbox(c context.Context, w http.Respons
 	return true, nil
 }
 
+// This only fetches the outbox from the db and returns it. I don't understand what is supposed to go here.
+// Since this returns an OrderedCollectionPage and I wanted our outbox to present an OrderedCollection by
+// default, in order to mirror mastodon's behavior so this is being overriden by code in the outboxHandler in
+// main.
 func (a *commonBehavior) GetOutbox(c context.Context, r *http.Request) (ocp vocab.ActivityStreamsOrderedCollectionPage, err error) {
 	iri, err := url.Parse(baseURL + a.parent.name + "/outbox")
 	if err != nil {
@@ -47,6 +50,7 @@ func (a *commonBehavior) GetOutbox(c context.Context, r *http.Request) (ocp voca
 	return
 }
 
+// Returns a new transport with a get and post httpsigners
 func (a *commonBehavior) NewTransport(c context.Context, actorBoxIRI *url.URL, gofedAgent string) (t pub.Transport, err error) {
 	clock, err := newClock("Europe/Athens")
 	if err != nil {
