@@ -1,18 +1,19 @@
 package main
 
+// Utility functions that don't fit anywhere else
+
 import (
-	// "log"
 	"github.com/gologme/log"
 
 	"io/ioutil"
 
-	"os"
 	"encoding/json"
+	"os"
 	"strings"
 )
 
 //PrettyPrint maps
-func PrettyPrint(themap map[string]interface{}){
+func PrettyPrint(themap map[string]interface{}) {
 	b, err := json.MarshalIndent(themap, "", "  ")
 	if err != nil {
 		log.Info("error:", err)
@@ -20,6 +21,10 @@ func PrettyPrint(themap map[string]interface{}){
 	log.Print(string(b))
 }
 
+// readStringFromFile opens a file and reads the contents
+// into a string. Initially created to avoid verbosity but
+// in fact you'd have to handle the error anyway so it doesn't
+// save you much trouble
 func readStringFromFile(filename string) (string, error) {
 	fileHandle, err := os.Open(filename)
 	if os.IsNotExist(err) {
@@ -34,8 +39,9 @@ func readStringFromFile(filename string) (string, error) {
 	return string(byteValue), nil
 }
 
-func readJSON(filename string) (map[string]interface{}, error){
-	
+// readJSON reads a json file and unmarshalls it into
+// a map[string]interface{}
+func readJSON(filename string) (map[string]interface{}, error) {
 	fileHandle, err := os.Open(filename)
 	if os.IsNotExist(err) {
 		log.Info("file " + filename + " cannot be opened")
@@ -52,19 +58,15 @@ func readJSON(filename string) (map[string]interface{}, error){
 	return jsonData, nil
 }
 
-// func writeJSON(filename string, content string) error{
-// 	err := ioutil.WriteFile(filename, []byte(content), 0644)
-// 	if err != nil {
-// 		log.Printf("Unable to write outbox JSON to file: %+v", err)
-// 		return err
-// 	}
-// 	return nil
-// }
-
+// makeURLsaveable replaces all the slashes with smiley faces
+// so that you can safely use it as a filename. You can quite
+// safely return it back without loss (though this is not used
+// in pherephone)
 func makeURLsaveable(url string) string {
 	return strings.Replace(url, "/", "😆", -1)
-} 
+}
 
-func bringURLback(mangledURL string) string{
+// convert a saveable url (see makeURLsaveable()) back to a URL
+func bringURLback(mangledURL string) string {
 	return strings.Replace(mangledURL, "😆", "/", -1)
 }
