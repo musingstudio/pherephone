@@ -91,6 +91,9 @@ func (f *federatingBehavior) PostInboxRequestBodyHook(c context.Context, r *http
 		}
 		// send accept anyway even if they are following us already
 		// this is very verbose. I would prefer creating a map by hand
+
+		// I later learned that maybe using object.AppendActivityStreamsFollow
+		// would make this less verbose. TODO
 		accept := streams.NewActivityStreamsAccept()
 		sender := streams.NewActivityStreamsActorProperty()
 		to := streams.NewActivityStreamsToProperty()
