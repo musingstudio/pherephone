@@ -95,3 +95,4 @@
 [ ] Implement following by mention
     (check signature and add an admin id in the config. Mentions from that account should be allowed to admin stuff)
 [ ] Implement nodeinfo and statistics
+[ ] Avatars
