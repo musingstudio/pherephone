@@ -181,7 +181,7 @@ func (a *Actor) save() error {
 		IRI:        a.iri,
 		Followers:  a.followers,
 		Following:  a.following,
-		Rejected:	a.rejected,
+		Rejected:   a.rejected,
 		PublicKey:  a.publicKeyPem,
 		PrivateKey: a.privateKeyPem,
 	}
@@ -246,7 +246,7 @@ func LoadActor(name string) (Actor, error) {
 	fileHandle, err := os.Open(jsonFile)
 	if os.IsNotExist(err) {
 		// if it doesn't exist, give up
-		log.Info("We don't have this kind of actor stored: "+ name)
+		log.Info("We don't have this kind of actor stored: " + name)
 		return Actor{}, err
 	}
 	// read the file
@@ -569,7 +569,7 @@ func (a *Actor) HandleOutbox(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var response []byte
-	// if there's no `page` parameter then just show an orderedCollection with 
+	// if there's no `page` parameter then just show an orderedCollection with
 	// links to the OrderedCollectionPages (we don't have pagination yet but still)
 	page := r.URL.Query().Get("page")
 	if page == "" {
@@ -588,7 +588,7 @@ func (a *Actor) HandleOutbox(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// prepare the response. The totalItems here shows all items as go-fed 
+		// prepare the response. The totalItems here shows all items as go-fed
 		// puts everything (including follows) in the outbox (unless I was supposed
 		// to filter follows somewhere). But iterating here and weeding follows out
 		// was too much work for a small discrepancy in the long run (few followees
@@ -601,10 +601,10 @@ func (a *Actor) HandleOutbox(w http.ResponseWriter, r *http.Request) {
 			"totalItems" : ` + strconv.Itoa(len(outboxMap["orderedItems"].([]interface{}))) + `, 
 			"type" : "OrderedCollection"
 			}`)
-	// show the page with the actual actions here. This is not being read by mastodon
-	// and it shows only whatever has at some point federated with them, but I think that
-	// this might actually be intended behavior and I don't know if it's worth pursuing 
-	// it more.
+		// show the page with the actual actions here. This is not being read by mastodon
+		// and it shows only whatever has at some point federated with them, but I think that
+		// this might actually be intended behavior and I don't know if it's worth pursuing
+		// it more.
 	} else if page == "1" {
 		collectionPage := make(map[string]interface{})
 		collectionPage["@context"] = "https://www.w3.org/ns/activitystreams"
@@ -683,7 +683,7 @@ func (a *Actor) JotFollowerDown(iri string) error {
 
 // GetFollowers returns a list of people that follow us
 func (a *Actor) GetFollowers(page int) (response []byte, err error) {
-	// if there's no page parameter mastodon displays an 
+	// if there's no page parameter mastodon displays an
 	// OrderedCollection with info of where to find orderedCollectionPages
 	// with the actual information. We are mirroring that behavior
 	if page == 0 {
@@ -725,7 +725,7 @@ func (a *Actor) GetFollowers(page int) (response []byte, err error) {
 func (a *Actor) GetFollowing(page int) (response []byte, err error) {
 	if page == 0 {
 		// TODO make this into a map like below
-		// if there's no page parameter mastodon displays an 
+		// if there's no page parameter mastodon displays an
 		// OrderedCollection with info of where to find orderedCollectionPages
 		// with the actual information. We are mirroring that behavior
 		response = []byte(`{
@@ -735,7 +735,7 @@ func (a *Actor) GetFollowing(page int) (response []byte, err error) {
 			"totalItems" : ` + strconv.Itoa(len(a.following)) + `,
 			"type" : "OrderedCollection"
 		 }`)
-	// This actually prints our followees in an orderedCollectionPage
+		// This actually prints our followees in an orderedCollectionPage
 	} else if page == 1 { // TODO: implement pagination
 		collectionPage := make(map[string]interface{})
 		collectionPage["@context"] = "https://www.w3.org/ns/activitystreams"

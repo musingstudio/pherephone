@@ -18,8 +18,8 @@ import (
 	// "context"
 	// "html"
 
-	"github.com/go-fed/activity/pub"
 	"github.com/gologme/log"
+	"github.com/qwazix/activity/pub"
 
 	// "github.com/go-fed/activity/streams"
 	"github.com/gorilla/mux"
@@ -246,7 +246,7 @@ func main() {
 			w.WriteHeader(http.StatusNotFound)
 			fmt.Fprintf(w, "404 - post not found")
 			return
-		}	
+		}
 
 		response := `{
 			"subject": "acct:` + actor.name + `@` + server + `",
@@ -292,7 +292,7 @@ func main() {
 	whoFollowsWho := make(map[string]map[string]interface{})
 	byteValue, _ := ioutil.ReadAll(jsonFile)
 	err = json.Unmarshal(byteValue, &whoFollowsWho)
-	if err != nil{
+	if err != nil {
 		printer.Error("There's an error in your actors.json. Please check!")
 		printer.Error("")
 		return
