@@ -1,0 +1,19 @@
+{
+	"Name": "activityserve_test_actor_2",
+	"Summary": "This is an activityserve test actor",
+	"ActorType": "Service",
+	"IRI": "https://floorb.qwazix.com/activityserve_test_actor_2",
+	"PublicKey": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAtf0dy+ahhXeLVRbyNIg9\nczNoylXNmzqaPwI8HJCHF747XxLNAlR2le/ThvdNYH+kjt0hAWxWHsVwTFuCPems\ncn/X4fynzQLW5iMgjHBIJoM/3tTzAGbPX+W/lvGeiPvsIsMG0/VtHmH4K1ba4Jy9\nC+D0rCTF8mmgEYvlaABgv+5/94b4pLU3HNX2ygvxZZiTwSvW41CXjotto5+g6cUM\nOuh0zrAFlruxfFAfb95NwimM3MFxapglEGdVsQ9IkwAs8H8nus2Y0Jyg14hRqeYz\nzE05F2LnC5v9XQRk2XCYHhpHR495lh8W1zpvP7pcZrY5do1/phP7R0l98r78coWG\ngwIDAQAB\n-----END PUBLIC KEY-----\n",
+	"PrivateKey": "-----BEGIN RSA PRIVATE KEY-----\nMIIEpQIBAAKCAQEAtf0dy+ahhXeLVRbyNIg9czNoylXNmzqaPwI8HJCHF747XxLN\nAlR2le/ThvdNYH+kjt0hAWxWHsVwTFuCPemscn/X4fynzQLW5iMgjHBIJoM/3tTz\nAGbPX+W/lvGeiPvsIsMG0/VtHmH4K1ba4Jy9C+D0rCTF8mmgEYvlaABgv+5/94b4\npLU3HNX2ygvxZZiTwSvW41CXjotto5+g6cUMOuh0zrAFlruxfFAfb95NwimM3MFx\napglEGdVsQ9IkwAs8H8nus2Y0Jyg14hRqeYzzE05F2LnC5v9XQRk2XCYHhpHR495\nlh8W1zpvP7pcZrY5do1/phP7R0l98r78coWGgwIDAQABAoIBAQCrbDU475GNysEv\n8WFMIljfvrkifhgh891/JHfC4FCgCMycDXWWkEDzkuhI5YG5OAKln52LXaTxb0EM\na9YOw6FwaQPNFtRoxBfwx33NS6ZqwI7VMvmCk1UbG6qQYB/ZIJOZWuN/nFqgl9/P\n0wxxLrLUEZ3m2OysHtpsLL52bIS1xDU55z17DgikOZtJ0jt7Up9GwN91975Slb3f\ndJWBSSMi+oSTI8FdWqOeLGCsWjVJ0ZoObFbYQqU/il+F9ATxCcRnJIunYB4VJO5L\nwuSCxpz2FJFYCAqK1mr8GQIUIBBek9RYvyuRRJeRJ3TqVGb41EC5Bqfw/THMq7Xc\nr688TSyBAoGBAMG2HK5fpt224+UgOTSAHCRTrse5AaYRYcg7J/LSjps31KUTFJSP\nckl6zQ8+nZ4Xt4p408yW2hbn9UBOKPed+uHwjHjXASzeIPIdqNlimsGvFgsl/lZP\nkpVnPlApn7oUjCBtltTXnEJdm2ycb1RP6wN8HN85bjLRpp0tzYjhXqaRAoGBAPCC\nBdp1T+OVAzTMfEbVmlDVgptjE0JUDsnc+GGL8mV7pcDHw8OyltnPyBtJYEM7JUZI\nw5rjdiQLfB+A6LFgttfX4mpdp1eBeW3MZYgUbGgolqUTArg8G37wuygwepNMVknV\nMis4TFoh8SDJgYin/YPrUH301DeoFxTz9pgPbu3TAoGBAKQKn5E/aWT6u1VOi4Md\nNjfBMhLqZi4HLEJPbk4g5yklB4vfc583NvZo6vyM7xdxSDoYhmwMF5YsSrFxPxoq\ni8oIVj0C/njLhyTh3xpweVOp/MXmH9NhwWWKL+fcx+nh+qR/iaqnCCnfcX5xn4nL\nv96MnTqgPOUGS81xe0v+ZpQxAoGAFx6oqWN1lo8Qi9bMa5LFDtg3gfB4PXwPH+Ca\nD+aAGrlUKcAKVZmpXq7WsajQFCZvYt5Dz3PmO3jPKcgelk6RxRX/sfHm0EamAaQQ\nbpBoC2s7cArvy/4bNoy1sRtX7Sj9coOIGxeCX3e70kcMqLJdcH0Cc9lBPUhvT5hU\nMDHrm/kCgYEAlODimcLZn0tR6FScnEnE6G9w8HBZxCxS6jD95sixy1s/9Xol2Mlm\nbg4rZ9sKW/t7fS4iA9/AgfIl2WdDXI+xz4UTi1iT8J3HujK7AupFLcffWaDlqwkc\nFJxVuCeHWsAZ+MV1HAZ/1LtIU2b1bIloNeKNKGpLqgazHxUx1R5UFuQ=\n-----END RSA PRIVATE KEY-----\n",
+	"Followers": {
+		"https://cybre.space/users/qwazix": "https://cybre.space/users/qwazix/inbox",
+		"https://cybre.space/users/tzo": "https://cybre.space/users/tzo/inbox",
+		"https://fosstodon.org/users/qwazix": "https://fosstodon.org/users/qwazix/inbox",
+		"https://mastodon.social/users/qwazix": "https://mastodon.social/users/qwazix/inbox"
+	},
+	"Following": {
+		"https://cybre.space/users/qwazix": "VPkGvsgJg3OJsRst",
+		"https://cybre.space/users/tzo": "Y40pl31NShtFuCQk"
+	},
+	"Rejected": {}
+}

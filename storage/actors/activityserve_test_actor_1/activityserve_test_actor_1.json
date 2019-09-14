@@ -1,0 +1,13 @@
+{
+	"Name": "activityserve_test_actor_1",
+	"Summary": "This is an activityserve test actor",
+	"ActorType": "Service",
+	"IRI": "https://floorb.qwazix.com/activityserve_test_actor_1",
+	"PublicKey": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAnhJE7SswmQE+YZmfhTD9\nF1ltx8Jg/Windi8DovfXhQxIUU2FwxWrz6n85GGPu3+sQADl3iJIeEygqSZ8+d09\nJF+fXapgH6h5F2zdtpsvxmnsjzi/Xjn9eDhJjaepCMB0nfFbSRRQYmgh9GionL2c\nXXz9lUyIjfRocnz176P45nPh1VoEktS6hKbqxdkYr2ETWcOZsGu5rnT0dz500OMf\n8gxRdN/whmT/7XHH5isWNiYoshamipbseTQe+LxUPJm4QFE3xq5vVr9/+eIjU122\ngOFxuUlarvD1x5YVYD5Bh3R3oDCZpSA+MvN5EF1wYgx6/xWFH4RMWKmVafJhb0MM\nEwIDAQAB\n-----END PUBLIC KEY-----\n",
+	"PrivateKey": "-----BEGIN RSA PRIVATE KEY-----\nMIIEogIBAAKCAQEAnhJE7SswmQE+YZmfhTD9F1ltx8Jg/Windi8DovfXhQxIUU2F\nwxWrz6n85GGPu3+sQADl3iJIeEygqSZ8+d09JF+fXapgH6h5F2zdtpsvxmnsjzi/\nXjn9eDhJjaepCMB0nfFbSRRQYmgh9GionL2cXXz9lUyIjfRocnz176P45nPh1VoE\nktS6hKbqxdkYr2ETWcOZsGu5rnT0dz500OMf8gxRdN/whmT/7XHH5isWNiYosham\nipbseTQe+LxUPJm4QFE3xq5vVr9/+eIjU122gOFxuUlarvD1x5YVYD5Bh3R3oDCZ\npSA+MvN5EF1wYgx6/xWFH4RMWKmVafJhb0MMEwIDAQABAoIBABLVGmEnRCL2gvgd\n1WOI8p5ViT7DacrHLSxnbYd8/7BaRkNpeQZFDrMvDXIoLXepPlxhvwE4FGpAtuNw\nMnOSaDZtLg96vPkImWSxE7ktxANfm09081fGkOxByIGX+AuS4lHu73FFek4/GcyE\nq5IBBSAeRBgFhj9jXw5E1Qg4AO9zrwRvJExFFKV20Q/ZV7UIxDZFuvwWk3lkO+E9\naef7ISqYqmS8TY+a4EWf4tuGZAhVktFyx57zZGRhtjSXf0FmNGNF05IPXqNaj3hS\nwwzcnAeHhpRJYklubEyTOlK7vXFK9WoAEto/RzSLXHVI4F2i4ZMzeTubaLPqXRuu\nBphgcAECgYEAxr1Cks1ZaLkb4AW5StexK1J0Gc7KKaSsrdBbVW5OBaEFs7lyUbZQ\nUgmNBbKNRx8UfdqmvaKHPadm6RQdHc71GRE3A9jjbtmB6i5HxOFwYTdgdLXd4AuL\nuiN4x026wXqokWYcRf15bXUKv2CaU8LCi60wDq3jrlEA8yK0xeOYCjECgYEAy51l\n2L3UeETfSXuWHRveSq7aeYbTab6DYcBJk6rPjpZ5VnkcO8yoF9dMWW8d0s3WBePY\nAYFntFXMVrxNxmYeqV10u4oGQflET+4nHFvny7Vz74LlfjfUyGUt3Z1Uzk+rJ6NX\nk9dRyL9mEcvqRVOkMLG7FnlYFSJP8dFeDr7Y5YMCgYAIawve3APlg7HCk3t9yBUh\nGKUCUtgNW4RU+HZl7/4uDtwG+Nv2yhos32qxyxZg5NghXJmjfrbrzaN2S/vPv2xy\nW2BRMWaw01XFbaBsnn/8HjRfvTRgwRxyDf6XspsuhtuNDR41eL8j+8kwwg7HbYCA\nGh3nAUabo6K+qcGugC14gQKBgG97DAoxVSVMQByRh80ENx8YwRGMmi/pWTGqAB7T\nhLSC+og34xdypA35mRnWVrPWcvnil5+rZEY+O5S5oLOhseP1ATa1CVwRyC8jK1LB\nlxXXkVRvjIsgsmXNz+DohUg4InOfYRHW8DZDZPUVenzeoKTwiohxg6J+mNrDUQYt\nw79VAoGAYvr2aC3aEPH0ftJxxt6XYkl7GmJBY9BM7g0g4gQg7Fqc6kHdWXh1QyfK\n8cydYsZ7aijHfDqmir5KmpsXSFm/3kCtdC3TXDhu5JTHhHkqJVArBzqvUGMsuBKg\n2+H7hBfgE4XPwBQ7HGQ1k2fbyeHz7IRmOYZzEWKD8Vd2UzG4kKk=\n-----END RSA PRIVATE KEY-----\n",
+	"Followers": {
+		"https://cybre.space/users/qwazix": {}
+	},
+	"Following": {},
+	"Rejected": {}
+}

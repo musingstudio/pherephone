@@ -1,0 +1,20 @@
+{
+	"@context": [
+		"https://www.w3.org/ns/activitystreams"
+	],
+	"actor": "https://floorb.qwazix.com/activityserve_test_actor_2",
+	"cc": "https://floorb.qwazix.com/activityserve_test_actor_2/followers",
+	"id": "https://floorb.qwazix.com/activityserve_test_actor_2/Ui8ABQBI4VSKBsCl",
+	"object": {
+		"attributedTo": "https://floorb.qwazix.com/activityserve_test_actor_2",
+		"cc": "https://floorb.qwazix.com/activityserve_test_actor_2/followers",
+		"content": "I'm building #ActivityPub stuff",
+		"id": "https://floorb.qwazix.com/activityserve_test_actor_2/note/Ui8ABQBI4VSKBsCl",
+		"published": "2019-09-12T09:58:44+03:00",
+		"to": "https://www.w3.org/ns/activitystreams#Public",
+		"type": "Note",
+		"url": "https://floorb.qwazix.com/activityserve_test_actor_2/Ui8ABQBI4VSKBsCl"
+	},
+	"published": "2019-09-12T09:58:44+03:00",
+	"type": "Create"
+}

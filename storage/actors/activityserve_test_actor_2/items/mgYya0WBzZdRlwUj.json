@@ -1,0 +1,20 @@
+{
+	"@context": [
+		"https://www.w3.org/ns/activitystreams"
+	],
+	"actor": "https://floorb.qwazix.com/activityserve_test_actor_2",
+	"cc": "https://floorb.qwazix.com/activityserve_test_actor_2/followers",
+	"id": "https://floorb.qwazix.com/activityserve_test_actor_2/mgYya0WBzZdRlwUj",
+	"object": {
+		"attributedTo": "https://floorb.qwazix.com/activityserve_test_actor_2",
+		"cc": "https://floorb.qwazix.com/activityserve_test_actor_2/followers",
+		"content": "Spam! Spam! Spam!",
+		"id": "https://floorb.qwazix.com/activityserve_test_actor_2/note/mgYya0WBzZdRlwUj",
+		"published": "2019-09-12T09:55:27+03:00",
+		"to": "https://www.w3.org/ns/activitystreams#Public",
+		"type": "Note",
+		"url": "https://floorb.qwazix.com/activityserve_test_actor_2/mgYya0WBzZdRlwUj"
+	},
+	"published": "2019-09-12T09:55:27+03:00",
+	"type": "Create"
+}

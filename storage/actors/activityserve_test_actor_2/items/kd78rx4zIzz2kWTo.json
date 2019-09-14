@@ -1,0 +1,21 @@
+{
+	"@context": [
+		"https://www.w3.org/ns/activitystreams"
+	],
+	"actor": "https://floorb.qwazix.com/activityserve_test_actor_2",
+	"cc": "https://floorb.qwazix.com/activityserve_test_actor_2/followers",
+	"id": "https://floorb.qwazix.com/activityserve_test_actor_2/kd78rx4zIzz2kWTo",
+	"object": {
+		"attributedTo": "https://floorb.qwazix.com/activityserve_test_actor_2",
+		"cc": "https://floorb.qwazix.com/activityserve_test_actor_2/followers",
+		"content": "Hello World!",
+		"id": "https://floorb.qwazix.com/activityserve_test_actor_2/note/kd78rx4zIzz2kWTo",
+		"inReplyTo": "https://cybre.space/@qwazix/102688373602724023",
+		"published": "2019-09-04T15:01:45+03:00",
+		"to": "https://www.w3.org/ns/activitystreams#Public",
+		"type": "Note",
+		"url": "https://floorb.qwazix.com/activityserve_test_actor_2/kd78rx4zIzz2kWTo"
+	},
+	"published": "2019-09-04T15:01:45+03:00",
+	"type": "Create"
+}
