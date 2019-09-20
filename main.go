@@ -1,30 +1,16 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
-
-	// "os"
-	// "strings"
-
-	// "errors"
-
-	// "encoding/json"
-	// "io/ioutil"
-	// "net/http"
-
-	// "net/url"
-	// "context"
-	// "html"
+	"io/ioutil"
+	"os"
+	"strings"
 
 	"github.com/gologme/log"
 
-	// "github.com/go-fed/activity/streams"
-	// "github.com/gorilla/mux"
-	// "gopkg.in/ini.v1"
-	// "github.com/davecgh/go-spew/spew"
-
-	"../activityserve"
+	"github.com/writeas/activityserve"
 )
 
 var err error
@@ -50,16 +36,102 @@ func main() {
 		log.EnableLevel("error")
 	}
 
-	activityserve.Setup("config.ini", *debugFlag)
+	// create a logger with levels but without prefixes for easier to read
+	// debug output
+	printer := log.New(os.Stdout, "", 0)
+	printer.EnableLevel("error")
 
-	// actor, _ := activityserve.MakeActor("activityserve_test_actor_2", "This is an activityserve test actor", "Service")
-	// actor, _ := activityserve.LoadActor("activityserve_test_actor_2")
-	// actor.Follow("https://cybre.space/users/tzo")
-	// actor.CreateNote("Hello World!")
+	if *debugFlag == true {
+		fmt.Println()
+		fmt.Println("debug mode on")
+		log.EnableLevel("info")
+		printer.EnableLevel("info")
+	}
 
-	actor, _ :=
-	activityserve.LoadActor("activityserve_test_actor_2")
-	actor.CreateNote("I'm building #ActivityPub stuff", "")
+	configurationFile := activityserve.Setup("config.ini", *debugFlag)
 
-	activityserve.Serve()
+	announceReplies, _ := configurationFile.Section("general").Key("announce_replies").Bool()
+
+	// get the list of local actors to host and the list
+	// of remote actors any of them relays (boosts, announces)
+	jsonFile, err := os.Open("actors.json")
+	if err != nil {
+		log.Info("something is wrong with the json file containing the actors")
+		log.Info(err)
+	}
+
+	// Unmarshall it into a map of string arrays
+	whoFollowsWho := make(map[string]map[string]interface{})
+	byteValue, _ := ioutil.ReadAll(jsonFile)
+	err = json.Unmarshal(byteValue, &whoFollowsWho)
+	if err != nil {
+		printer.Error("There's an error in your actors.json. Please check!")
+		printer.Error("")
+		return
+	}
+
+	actors := make(map[string]activityserve.Actor)
+
+	// create all local actors if they don't exist yet
+	for follower, data := range whoFollowsWho {
+		followees := data["follow"].([]interface{})
+		printer.Info()
+		log.Info("Local Actor: " + follower)
+		if strings.ContainsAny(follower, " \\/:*?\"<>|") {
+			log.Warn("local actors can't have spaces or any of these characters in their name: \\/:*?\"<>|")
+			log.Warn("Actor " + follower + " will be ignored")
+			continue
+		}
+		localActor, err := activityserve.GetActor(follower, data["summary"].(string), "Service")
+		if err != nil {
+			log.Info("error creating local actor")
+			return
+		}
+		// Now follow each one of it's users
+		log.Info("Users to relay:")
+		for _, followee := range followees {
+			log.Info(followee)
+			go localActor.Follow(followee.(string))
+		}
+		// Iterate over the current following users and if anybody doesn't exist
+		// in the users to follow list unfollow them
+		for following := range localActor.Following() {
+			exists := false
+			for _, followee := range followees {
+				if followee.(string) == following {
+					exists = true
+					break
+				}
+			}
+			if exists == false {
+				go localActor.Unfollow(following)
+			}
+		}
+
+		// boost everything that comes in
+		localActor.OnReceiveContent = func(activity map[string]interface{}) {
+			log.Info("callback")
+			// check if we are following the person that sent us the
+			// message otherwise we're open in spraying spam from whoever
+			// messages us to our followers
+			if _, ok := localActor.Following()[activity["actor"].(string)]; ok {
+				inReplyTo, ok := activity["inReplyTo"]
+				isReply := false
+				// if the field exists and is not null and is not empty
+				// then it's a reply
+				if ok && inReplyTo != nil && inReplyTo != "" {
+					isReply = true
+				}
+				// if it's a reply and announce_replies config option
+				// is set to false then bail out
+				if !(announceReplies == false && isReply == true) {
+					content := activity["object"].(map[string]interface{})
+					go localActor.Announce(content["id"].(string))
+				}
+			}
+		}
+		actors[localActor.Name] = localActor
+	}
+
+	activityserve.Serve(actors)
 }

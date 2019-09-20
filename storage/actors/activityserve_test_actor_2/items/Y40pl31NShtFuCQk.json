@@ -1,9 +1,0 @@
-{
-	"@context": [
-		"https://www.w3.org/ns/activitystreams"
-	],
-	"actor": "https://floorb.qwazix.com/activityserve_test_actor_2",
-	"id": "https://floorb.qwazix.com/activityserve_test_actor_2/Y40pl31NShtFuCQk",
-	"object": "https://cybre.space/users/tzo",
-	"type": "Follow"
-}

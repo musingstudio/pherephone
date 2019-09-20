@@ -1,0 +1,26 @@
+{
+    "myAwesomeList4" : {
+        "summary": "a list of favorite writers",
+        "follow": [
+            "https://pixelfed.social/users/qwazix",
+            "https://mastodon.social/users/qwazix",
+            "https://cybre.space/users/qwazix"
+        ]
+    },
+    "myAwesomeList5" : {
+        "summary": "a list of favorite writers",
+        "follow": [
+            "https://pixelfed.social/users/qwazix",
+            "https://print3d.social/users/qwazix",
+            "https://mixt.qwazix.com/api/collections/qwazix",
+            "https://cybre.space/users/qwazix"
+        ]
+    },
+    "myAwesomeList6" : {
+        "summary": "a list of favorite writers",
+        "follow": [
+            "https://print3d.social/users/qwazix",
+            "https://mixt.qwazix.com/api/collections/qwazix"
+        ]
+    }
+}
