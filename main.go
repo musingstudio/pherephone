@@ -110,12 +110,12 @@ func main() {
 
 		// boost everything that comes in
 		localActor.OnReceiveContent = func(activity map[string]interface{}) {
-			log.Info("callback")
 			// check if we are following the person that sent us the
 			// message otherwise we're open in spraying spam from whoever
 			// messages us to our followers
 			if _, ok := localActor.Following()[activity["actor"].(string)]; ok {
-				inReplyTo, ok := activity["inReplyTo"]
+				object := activity["object"].(map[string]interface{})
+				inReplyTo, ok := object["inReplyTo"]
 				isReply := false
 				// if the field exists and is not null and is not empty
 				// then it's a reply
@@ -124,7 +124,7 @@ func main() {
 				}
 				// if it's a reply and announce_replies config option
 				// is set to false then bail out
-				if !(announceReplies == false && isReply == true) {
+				if announceReplies == true || isReply == false {
 					content := activity["object"].(map[string]interface{})
 					go localActor.Announce(content["id"].(string))
 				}
