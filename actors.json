@@ -13,14 +13,19 @@
             "https://pixelfed.social/users/qwazix",
             "https://print3d.social/users/qwazix",
             "https://mixt.qwazix.com/api/collections/qwazix",
-            "https://cybre.space/users/qwazix"
+            "https://cybre.space/users/qwazix",
+            "https://fosstodon.org/users/qwazix",
+            "https://iscute.moe/users/qwazix",
+            "https://pe.ertu.be/accounts/qwazix",
+            "https://peertube2.cpy.re/accounts/root/"
         ]
     },
     "myAwesomeList6" : {
         "summary": "a list of favorite writers",
         "follow": [
             "https://print3d.social/users/qwazix",
-            "https://mixt.qwazix.com/api/collections/qwazix"
+            "https://mixt.qwazix.com/api/collections/qwazix",
+            "https://iscute.moe/users/qwazix"
         ]
     }
 }
