@@ -56,8 +56,10 @@ func main() {
 	// of remote actors any of them relays (boosts, announces)
 	jsonFile, err := os.Open("actors.json")
 	if err != nil {
-		log.Info("something is wrong with the json file containing the actors")
-		log.Info(err)
+		printer.Error("something is wrong with the json file containing the actors")
+		printer.Error("")
+		log.Error(err)
+		return
 	}
 
 	// Unmarshall it into a map of string arrays
@@ -67,6 +69,7 @@ func main() {
 	if err != nil {
 		printer.Error("There's an error in your actors.json. Please check!")
 		printer.Error("")
+		log.Error(err)
 		return
 	}
 
@@ -78,8 +81,8 @@ func main() {
 		printer.Info()
 		log.Info("Local Actor: " + follower)
 		if strings.ContainsAny(follower, " \\/:*?\"<>|") {
-			log.Warn("local actors can't have spaces or any of these characters in their name: \\/:*?\"<>|")
-			log.Warn("Actor " + follower + " will be ignored")
+			printer.Warn("local actors can't have spaces or any of these characters in their name: \\/:*?\"<>|")
+			printer.Warn("Actor " + follower + " will be ignored")
 			continue
 		}
 		localActor, err := activityserve.GetActor(follower, data["summary"].(string), "Service")
