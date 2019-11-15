@@ -17,8 +17,6 @@ var err error
 
 func main() {
 
-	// This is here for debugging purposes. I want to be able to easily spot in the terminal
-	// when a single execution starts
 	fmt.Println()
 	fmt.Println("======================= PHeRePHoNe ==========================")
 
@@ -32,20 +30,22 @@ func main() {
 	flag.Parse()
 
 	if *debugFlag == true {
-		log.EnableLevel("info")
-		log.EnableLevel("error")
+
 	}
 
 	// create a logger with levels but without prefixes for easier to read
 	// debug output
 	printer := log.New(os.Stdout, "", 0)
 	printer.EnableLevel("error")
+	printer.EnableLevel("info")
+	log.EnableLevel("warn")
 
 	if *debugFlag == true {
-		fmt.Println()
-		fmt.Println("debug mode on")
+		printer.Info()
+		printer.Info("debug mode on")
 		log.EnableLevel("info")
-		printer.EnableLevel("info")
+		log.EnableLevel("error")
+		log.EnableLevel("info")
 	}
 
 	configurationFile := activityserve.Setup("config.ini", *debugFlag)
