@@ -2,6 +2,12 @@
 
 A _Pherephonon_ in Greek is someone who doesn't have his own voice and just repeats things other said. _Pherephone_ is an ActivityPub relay. You set it up to follow a few accounts and it Announces everything they post.
 
+## Use cases
+
+Pherephone is meant to bring multiple fediverse accounts, even across platforms, into a single followable ActivityPub Actor.
+
+For example, you might have multiple [Mastodon](https://joinmastodon.org) accounts, or mix them with [PixelFed](https://pixelfed.org/) profiles, [WriteFreely](https://writefreely.org) blogs, and [PeerTube](https://joinpeertube.org/) channels. Pherephone makes it easy to give your audience a single handle to follow all of them at once.
+
 ## How to run 
 
 Download the binary, edit `config.ini` and `actors.json` to your liking and run it.
