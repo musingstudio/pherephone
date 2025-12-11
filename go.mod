@@ -1,6 +1,7 @@
 module github.com/musingstudio/pherephone
 
-go 1.21
+go 1.24.0
+
 toolchain go1.24.1
 
 require (
@@ -17,7 +18,7 @@ require (
 	github.com/stretchr/testify v1.9.0 // indirect
 	github.com/writeas/go-webfinger v1.1.0 // indirect
 	github.com/writefreely/go-nodeinfo v1.2.0 // indirect
-	golang.org/x/crypto v0.35.0 // indirect
-	golang.org/x/sys v0.30.0 // indirect
+	golang.org/x/crypto v0.45.0 // indirect
+	golang.org/x/sys v0.38.0 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 )
